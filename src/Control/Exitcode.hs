@@ -18,44 +18,54 @@ data ExitcodeT f a =
 type Exitcode a =
   ExitcodeT Identity a
 
+type ExitcodeT0 f =
+  ExitcodeT f ()
+
 type Exitcode0 =
   Exitcode ()
 
 exitsuccess ::
+  Applicative f =>
   a
-  -> Exitcode a
+  -> ExitcodeT f a
 exitsuccess =
-  ExitcodeT . Identity . Right
+  ExitcodeT . pure . Right
 
 exitsuccess0 ::
-  Exitcode0
+  Applicative f =>
+  ExitcodeT0 f
 exitsuccess0 =
   exitsuccess ()
 
 exitfailure0 ::
+  Applicative f =>
   Int
-  -> Exitcode0
+  -> ExitcodeT0 f
 exitfailure0 n =
   if n == 0
     then
       exitsuccess0
     else
-      ExitcodeT . Identity . Left $ n
+      ExitcodeT . pure . Left $ n
 
-exitcode ::
+exitCode ::
+  Functor f =>
   Iso'
-    Exitcode0
-    ExitCode
-exitcode =
+    (ExitcodeT0 f)
+    (f ExitCode)
+exitCode =
   iso
-    (\(ExitcodeT (Identity x)) -> either ExitFailure (const ExitSuccess) x)
-    (\x ->  case x of
-              ExitSuccess ->
-                exitsuccess0
-              ExitFailure 0 ->
-                exitsuccess0
-              ExitFailure n ->
-                exitfailure0 n)
+    (\(ExitcodeT x) -> either ExitFailure (const ExitSuccess) <$> x)
+    (\x -> let ex ExitSuccess = Right ()
+               ex (ExitFailure 0) = Right ()
+               ex (ExitFailure n) = Left n
+           in  ExitcodeT (ex <$> x))
+
+runExitcode ::
+  ExitcodeT f a
+  -> f (Either Int a)
+runExitcode (ExitcodeT x) =
+  x
 
 _ExitFailure ::
   Prism'
@@ -89,7 +99,7 @@ instance Applicative f => Applicative (ExitcodeT f) where
   ExitcodeT f <*> ExitcodeT a =
     ExitcodeT (liftA2 (<*>) f a)
 
-instance (Apply f, Bind f, Monad f) => Bind (ExitcodeT f) where
+instance (Bind f, Monad f) => Bind (ExitcodeT f) where
   (>>-) =
     (>>=)
 
