@@ -1,15 +1,16 @@
 module Control.Exitcode where
 
-import Control.Applicative
-import Control.Lens hiding ((<.>))
-import Data.Functor.Apply
-import Data.Functor.Alt
-import Data.Functor.Bind
-import Data.Functor.Classes
-import Data.Functor.Extend
-import Data.Semigroup
-import Data.Semigroup.Foldable
-import System.Exit
+import           Control.Applicative
+import           Control.Lens            hiding ((<.>))
+import           Control.Monad.IO.Class  (MonadIO (liftIO))
+import           Data.Functor.Alt
+import           Data.Functor.Apply
+import           Data.Functor.Bind
+import           Data.Functor.Classes
+import           Data.Functor.Extend
+import           Data.Semigroup
+import           Data.Semigroup.Foldable
+import           System.Exit
 
 -- hide the constructor, `Left 0` is an invalid state
 data ExitcodeT f a =
@@ -125,14 +126,21 @@ instance (Show1 f, Show a) => Show (ExitcodeT f a) where
     showsUnaryWith showsPrec1 "ExitcodeT" d m
 
 instance Foldable f => Foldable (ExitcodeT f) where
-  foldr f b (ExitcodeT m) =
-    let g a b' = liftA2 either const (flip f) b' a
-     in foldr g b m
+  foldr f z (ExitcodeT x) =
+    foldr (flip (foldr f)) z x
 
 instance Foldable1 f => Foldable1 (ExitcodeT f)
 
+instance Traversable f => Traversable (ExitcodeT f) where
+  traverse f (ExitcodeT x) =
+    ExitcodeT <$> traverse (traverse f) x
+
+instance MonadIO f => MonadIO (ExitcodeT f) where
+  liftIO io =
+    ExitcodeT (Right <$> liftIO io)
+
 -- MonadReader, MonadWriter, MonadState, MonadRWS, MonadError
 -- MonadFix, MonadFail, MonadCont
--- Foldable, Traversable, Foldable1, Traversable1
+-- Traversable1
 -- MonadTrans, MonadIO, MonadZip
 -- Eq1, Ord1, Show1
