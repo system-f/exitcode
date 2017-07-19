@@ -121,8 +121,7 @@ instance (Ord1 f, Ord a) => Ord (ExitcodeT f a) where
 
 instance (Show1 f, Show a) => Show (ExitcodeT f a) where
   showsPrec d (ExitcodeT m) =
-    -- todo: showsUnary1 is deprecated.
-    showsUnary1 "ExitcodeT" d m
+    showsUnaryWith showsPrec1 "ExitcodeT" d m
 
 -- MonadReader, MonadWriter, MonadState, MonadRWS, MonadError
 -- MonadFix, MonadFail, MonadCont
