@@ -8,13 +8,18 @@ homepage:            https://github.com/qfpl/exitcode
 license:             BSD3
 license-file:        LICENSE
 author:              QFPL
-maintainer:          contact@qfpl.io
-copyright:           Copyright (C) 2017 Queensland Functional Programming Lab (QFPL)
+maintainer:          Queensland Functional Programming Lab oᴉ˙ldɟb@llǝʞsɐɥ
 copyright:           Copyright (C) 2017 Commonwealth Scientific and Industrial Research Organisation (CSIRO)
 category:            Control
 build-type:          Simple
 extra-source-files:  ChangeLog.md
 cabal-version:       >=1.10
+homepage:            https://github.com/qfpl/exitcode
+bug-reports:         https://github.com/qfpl/exitcode/issues
+
+source-repository   head
+  type:             git
+  location:         git@github.com:qfpl/exitcode.git
 
 library
   exposed-modules:     Control.Exitcode
