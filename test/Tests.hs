@@ -1,4 +1,3 @@
--- import Test.Tasty (testGroup, testProperty)
 import           Data.Functor.Classes     (Eq1)
 import           Test.QuickCheck          (Arbitrary (..))
 import           Test.QuickCheck.Checkers (EqProp (..), eq, quickBatch)
