@@ -4,7 +4,6 @@ import           Control.Applicative
 import           Control.Lens            hiding ((<.>))
 import           Control.Monad.IO.Class  (MonadIO (liftIO))
 import           Data.Functor.Alt
-import           Data.Functor.Apply
 import           Data.Functor.Bind
 import           Data.Functor.Classes
 import           Data.Functor.Extend
@@ -142,5 +141,5 @@ instance MonadIO f => MonadIO (ExitcodeT f) where
 -- MonadReader, MonadWriter, MonadState, MonadRWS, MonadError
 -- MonadFix, MonadFail, MonadCont
 -- Traversable1
--- MonadTrans, MonadIO, MonadZip
+-- MonadTrans, MonadZip
 -- Eq1, Ord1, Show1
