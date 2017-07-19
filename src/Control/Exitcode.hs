@@ -147,9 +147,3 @@ instance Traversable f => Traversable (ExitcodeT f) where
 instance MonadIO f => MonadIO (ExitcodeT f) where
   liftIO io =
     ExitcodeT (Right <$> liftIO io)
-
--- MonadReader, MonadWriter, MonadState, MonadRWS, MonadError
--- MonadFix, MonadFail, MonadCont
--- Traversable1
--- MonadTrans, MonadZip
--- Eq1, Ord1, Show1
