@@ -8,6 +8,7 @@ import Data.Functor.Bind
 import Data.Functor.Classes
 import Data.Functor.Extend
 import Data.Semigroup
+import Data.Semigroup.Foldable
 import System.Exit
 
 -- hide the constructor, `Left 0` is an invalid state
@@ -122,6 +123,13 @@ instance (Ord1 f, Ord a) => Ord (ExitcodeT f a) where
 instance (Show1 f, Show a) => Show (ExitcodeT f a) where
   showsPrec d (ExitcodeT m) =
     showsUnaryWith showsPrec1 "ExitcodeT" d m
+
+instance Foldable f => Foldable (ExitcodeT f) where
+  foldr f b (ExitcodeT m) =
+    let g a b' = liftA2 either const (flip f) b' a
+     in foldr g b m
+
+instance Foldable1 f => Foldable1 (ExitcodeT f)
 
 -- MonadReader, MonadWriter, MonadState, MonadRWS, MonadError
 -- MonadFix, MonadFail, MonadCont
