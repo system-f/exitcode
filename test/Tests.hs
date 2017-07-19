@@ -2,6 +2,8 @@ import           Data.Functor.Classes     (Eq1)
 import           Test.QuickCheck          (Arbitrary (..))
 import           Test.QuickCheck.Checkers (EqProp (..), eq, quickBatch)
 import           Test.QuickCheck.Classes  (applicative, functor)
+import           Test.Tasty               (TestTree, defaultMain, testGroup)
+import           Test.Tasty.HUnit         (testCase, (@?=))
 
 import           Control.Exitcode
 
@@ -26,3 +28,11 @@ main :: IO ()
 main = do
   quickBatch $ functor (undefined :: CheckMe)
   quickBatch $ applicative (undefined :: CheckMe)
+  defaultMain testApplicative
+
+testApplicative :: TestTree
+testApplicative =
+  testGroup "Applicative" [
+    testCase "Sticks to the Right" $
+      pure (+1) <*> pure (41 :: Integer) @?= ExitcodeT [Right 42]
+  ]
