@@ -1,6 +1,9 @@
 module Control.Exitcode (
                         -- * Types
                           ExitcodeT
+                        , Exitcode
+                        , ExitcodeT0
+                        , Exitcode0
                         -- * Constructors
                         , exitsuccess
                         , exitsuccess0
