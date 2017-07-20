@@ -53,9 +53,7 @@ noLeft0Test :: TestTree
 noLeft0Test =
   testGroup "Left 0 is impossible" [
     testProperty "_ExitFailure does not produce `Left 0`" $
-      \n ->
-        let ec = review _ExitFailure n
-         in if n == 0 then ec == exitsuccess0 else ec == exitfailure0 n
+      \n -> liftA2 bool (== exitfailure0 n) (== exitsuccess0) (review _ExitFailure n) (n == 0)
   ]
 
 tastyCheckersBatch :: TestBatch -> TestTree
