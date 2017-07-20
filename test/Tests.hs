@@ -1,11 +1,13 @@
 import           Data.Functor.Classes     (Eq1)
+import           Data.Monoid              ((<>))
+
 import           Test.QuickCheck          (Arbitrary (..))
 import           Test.QuickCheck.Checkers (EqProp (..), eq, quickBatch)
 import           Test.QuickCheck.Classes  (applicative, functor)
 import           Test.Tasty               (TestTree, defaultMain, testGroup)
 import           Test.Tasty.HUnit         (testCase, (@?=))
 
-import           Control.Exitcode         (ExitcodeT, exitsuccess)
+import           Control.Exitcode         (Exitcode, ExitcodeT, exitsuccess)
 
 newtype EW f a = EW { unEW :: ExitcodeT f a } deriving (Eq, Show)
 
@@ -34,5 +36,5 @@ testApplicative :: TestTree
 testApplicative =
   testGroup "Applicative" [
     testCase "Sticks to the Right" $
-      pure (+1) <*> pure (41) @?= (exitsuccess 42 :: ExitcodeT [] Integer)
+      pure (<> "bar") <*> pure "foo" @?= (exitsuccess "foobar" :: Exitcode String)
   ]
