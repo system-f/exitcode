@@ -1,4 +1,16 @@
-module Control.Exitcode where
+module Control.Exitcode (
+                        -- * Types
+                          ExitcodeT
+                        -- * Constructors
+                        , exitsuccess
+                        , exitsuccess0
+                        , exitfailure0
+                        , runExitcode
+                        -- * Optics
+                        , exitCode
+                        , _ExitFailure
+                        , _ExitSuccess
+                        ) where
 
 import           Control.Applicative
 import           Control.Lens            hiding ((<.>))
@@ -56,7 +68,7 @@ exitCode ::
 exitCode =
   iso
     (\(ExitcodeT x) -> either ExitFailure (const ExitSuccess) <$> x)
-    (\x -> let ex ExitSuccess = Right ()
+    (\x -> let ex ExitSuccess     = Right ()
                ex (ExitFailure 0) = Right ()
                ex (ExitFailure n) = Left n
            in  ExitcodeT (ex <$> x))
