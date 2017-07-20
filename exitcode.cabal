@@ -32,12 +32,14 @@ library
   ghc-options:         -Wall -Werror
 
 test-suite             tests
-  build-depends:       base >=4.9 && <4.10
-                     , exitcode
+  build-depends:       QuickCheck >=2.9.2 && <2.11
+                     , base >=4.9 && <4.10
                      , checkers >=0.4.6 && <0.5
-                     , QuickCheck >=2.9.2 && <2.11
+                     , exitcode
+                     , lens >=4.15 && <4.16
                      , tasty >=0.11 && <0.12
                      , tasty-hunit >=0.9 && <0.10
+                     , tasty-quickcheck >=0.8.4 && <0.10
   type:                exitcode-stdio-1.0
   main-is:             Tests.hs
   hs-source-dirs:      test
