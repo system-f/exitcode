@@ -13,7 +13,7 @@ import           Test.Tasty.QuickCheck    (testProperty)
 import           Control.Exitcode         (Exitcode, ExitcodeT, exitCode,
                                            exitfailure0, exitsuccess,
                                            exitsuccess0, runExitcode,
-                                           _ExitFailure)
+                                           _ExitFailure, _ExitSuccess)
 
 import           System.Exit              (ExitCode (..))
 
@@ -49,7 +49,7 @@ test_Exitcode =
   , tastyCheckersBatch $ applicative (undefined :: CheckMe)
   , applicativeTest
   , exitFailurePrismTest
-  -- , exitSuccessPrismTest
+  , exitSuccessPrismTest
   , exitfailure0Test
   , exitCodePrismTest
   ]
@@ -64,10 +64,27 @@ applicativeTest =
 exitFailurePrismTest :: TestTree
 exitFailurePrismTest =
   testGroup "_ExitFailure Prism" [
-    testProperty "non-zero input" $
+    testProperty "review non-zero input" $
       \(NonZero n) -> review _ExitFailure n == exitfailure0 n
-  , testCase "0" $
-      review _ExitFailure 0 @?= (exitsuccess0)
+  , testCase "review 0" $
+      review _ExitFailure 0 @?= exitsuccess0
+  , testProperty "view non-zero input" $
+      \(NonZero n) -> exitfailure0 n ^? _ExitFailure == Just n
+  , testCase "view 0" $
+      exitfailure0 0 ^? _ExitFailure @?= Nothing
+  ]
+
+exitSuccessPrismTest :: TestTree
+exitSuccessPrismTest =
+  testGroup "_ExitSuccess Prism" [
+    testCase "review" $
+      review _ExitSuccess () @?= exitsuccess0
+  , testCase "view exitsuccess0" $
+      exitsuccess0 ^? _ExitSuccess @?= Just ()
+  , testProperty "view exitfailure0 non-zero" $
+      \(NonZero n) -> exitfailure0 n ^? _ExitSuccess == Nothing
+  , testCase "view exitfailure0 0" $
+      exitfailure0 0 ^? _ExitSuccess @?= Just ()
   ]
 
 exitfailure0Test :: TestTree
