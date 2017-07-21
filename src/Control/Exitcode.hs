@@ -1,3 +1,7 @@
+{-# LANGUAGE FlexibleInstances #-}
+{-# LANGUAGE MultiParamTypeClasses #-}
+{-# LANGUAGE UndecidableInstances #-}
+
 module Control.Exitcode (
                         -- * Types
                           ExitcodeT
@@ -13,20 +17,23 @@ module Control.Exitcode (
                         , exitCode
                         , _ExitFailure
                         , _ExitSuccess
+                        , foo
                         ) where
 
-import           Control.Applicative     (Applicative, liftA2)
-import           Control.Lens            hiding ((<.>))
-import           Control.Monad.IO.Class  (MonadIO (liftIO))
-import           Data.Functor.Alt        (Alt, (<!>))
-import           Data.Functor.Apply      (Apply, liftF2, (<.>))
-import           Data.Functor.Bind       (Bind, (>>-))
-import           Data.Functor.Classes    (Eq1, Ord1, Show1, compare1, eq1,
-                                          showsPrec1, showsUnaryWith)
-import           Data.Functor.Extend     (Extend, duplicated)
-import           Data.Semigroup          (Semigroup, (<>))
-import           Data.Semigroup.Foldable (Foldable1)
-import           System.Exit             (ExitCode (..))
+import           Control.Applicative       (Applicative, liftA2)
+import           Control.Lens              hiding ((<.>))
+import           Control.Monad.IO.Class    (MonadIO (liftIO))
+import           Control.Monad.Trans.Class (MonadTrans (lift))
+import           Control.Monad.Reader    (MonadReader (..), Reader, runReader)
+import           Data.Functor.Alt          (Alt, (<!>))
+import           Data.Functor.Apply        (Apply, liftF2, (<.>))
+import           Data.Functor.Bind         (Bind, (>>-))
+import           Data.Functor.Classes      (Eq1, Ord1, Show1, compare1, eq1,
+                                            showsPrec1, showsUnaryWith)
+import           Data.Functor.Extend       (Extend, duplicated)
+import           Data.Semigroup            (Semigroup, (<>))
+import           Data.Semigroup.Foldable   (Foldable1)
+import           System.Exit               (ExitCode (..))
 
 -- hide the constructor, `Left 0` is an invalid state
 data ExitcodeT f a =
@@ -166,3 +173,10 @@ instance Traversable f => Traversable (ExitcodeT f) where
 instance MonadIO f => MonadIO (ExitcodeT f) where
   liftIO io =
     ExitcodeT (Right <$> liftIO io)
+
+instance MonadTrans ExitcodeT where
+  lift = ExitcodeT . (>>= pure . pure)
+
+instance MonadReader r m => MonadReader r (ExitcodeT m) where
+  ask = lift ask
+  local f (ExitcodeT m) = ExitcodeT $ local f m

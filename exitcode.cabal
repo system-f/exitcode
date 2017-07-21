@@ -25,6 +25,7 @@ library
   exposed-modules:     Control.Exitcode
   build-depends:       base >=4.9 && <4.10
                      , lens >=4.15 && <4.16
+                     , mtl >=2.2 && <2.3
                      , semigroupoids >=5.1 && <5.3
                      , transformers >=0.5.2 && <5.5
   hs-source-dirs:      src
