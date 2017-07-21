@@ -78,7 +78,7 @@ exitCode =
     (\x -> let ex ExitSuccess     = Just $ Right ()
                ex (ExitFailure 0) = Nothing
                ex (ExitFailure n) = Just $ Left n
-            in ExitcodeT <$> (sequence (ex <$> x)))
+            in ExitcodeT <$> (traverse ex x))
 
 runExitcode ::
   ExitcodeT f a
