@@ -17,7 +17,6 @@ module Control.Exitcode (
                         , exitCode
                         , _ExitFailure
                         , _ExitSuccess
-                        , foo
                         ) where
 
 import           Control.Applicative       (Applicative, liftA2)
