@@ -1,4 +1,4 @@
-import           Control.Lens             (review, (^.), from)
+import           Control.Lens             (review, (^?))
 import           Data.Functor.Classes     (Eq1)
 import           Data.Functor.Identity    (Identity (..), runIdentity)
 import           Data.Monoid              ((<>))
@@ -10,11 +10,12 @@ import           Test.Tasty               (TestTree, defaultMain, testGroup)
 import           Test.Tasty.HUnit         (testCase, (@?=))
 import           Test.Tasty.QuickCheck    (testProperty)
 
-import           Control.Exitcode         (Exitcode, ExitcodeT, exitfailure0,
-                                           exitsuccess, exitsuccess0,
-                                           runExitcode, _ExitFailure, exitCode)
+import           Control.Exitcode         (Exitcode, ExitcodeT, exitCode,
+                                           exitfailure0, exitsuccess,
+                                           exitsuccess0, runExitcode,
+                                           _ExitFailure)
 
-import           System.Exit             (ExitCode (..))
+import           System.Exit              (ExitCode (..))
 
 newtype EW f a = EW { unEW :: ExitcodeT f a } deriving (Eq, Show)
 
@@ -50,7 +51,7 @@ test_Exitcode =
   , exitFailurePrismTest
   -- , exitSuccessPrismTest
   , exitfailure0Test
-  , exitCodeIsoTest
+  , exitCodePrismTest
   ]
 
 applicativeTest :: TestTree
@@ -78,19 +79,21 @@ exitfailure0Test =
       (runIdentity . runExitcode) (exitfailure0 0) @?= Right ()
   ]
 
-exitCodeIsoTest :: TestTree
-exitCodeIsoTest =
-  testGroup "exitCode Iso" [
-    testProperty "view `exitfailure0 n`, where n is non-zero" $
-      \(NonZero n) -> (exitfailure0 n ^. exitCode) == Identity (ExitFailure n)
-  , testCase "view `exitfailure 0`" $
-      runIdentity (exitfailure0 0 ^. exitCode) @?= ExitSuccess
-  , testCase "view `exitsuccess0`" $
-      runIdentity (exitsuccess0 ^. exitCode) @?= ExitSuccess
-  , testProperty "from `f ExitFailure n`, where n is non-zero" $
-      \(NonZero n) -> Identity (ExitFailure n) ^. from exitCode == exitfailure0 n
-  , testCase "from `Identity (ExitFailure 0)`" $
-      Identity (ExitFailure 0) ^. from exitCode @?= exitsuccess0
+exitCodePrismTest :: TestTree
+exitCodePrismTest =
+  testGroup "exitCode Prism" [
+    testProperty "`exitfailure0 n`, where n is non-zero" $
+      \(NonZero n) -> (review exitCode (exitfailure0 n)) == Identity (ExitFailure n)
+  , testCase "review `exitfailure 0`" $
+      runIdentity (review exitCode (exitfailure0 0)) @?= ExitSuccess
+  , testCase "review `exitsuccess0`" $
+      runIdentity (review exitCode exitsuccess0) @?= ExitSuccess
+  , testProperty "view ExitFailure n, where n is non-zero" $
+      \(NonZero n) -> Identity (ExitFailure n) ^? exitCode == Just (exitfailure0 n)
+  , testCase "view ExitFailure 0" $
+      Identity (ExitFailure 0) ^? exitCode @?= Nothing
+  , testCase "view ExitSuccess" $
+      Identity ExitSuccess ^? exitCode @?= Just exitsuccess0
   ]
 
 tastyCheckersBatch :: TestBatch -> TestTree

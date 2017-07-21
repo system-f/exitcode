@@ -65,18 +65,20 @@ exitfailure0 n =
     else
       ExitcodeT . pure . Left $ n
 
+-- This could almost be an Iso, but it wouldn't be lawful, as:
+--   `(Identity (ExitFailure 0)) ^. from exitCode . exitCode == Identity ExitSuccess`
 exitCode ::
-  Functor f =>
-  Iso'
-    (ExitcodeT0 f)
+  Traversable f =>
+  Prism'
     (f ExitCode)
+    (ExitcodeT0 f)
 exitCode =
-  iso
+  prism'
     (\(ExitcodeT x) -> either ExitFailure (const ExitSuccess) <$> x)
-    (\x -> let ex ExitSuccess     = Right ()
-               ex (ExitFailure 0) = Right ()
-               ex (ExitFailure n) = Left n
-           in  ExitcodeT (ex <$> x))
+    (\x -> let ex ExitSuccess     = Just $ Right ()
+               ex (ExitFailure 0) = Nothing
+               ex (ExitFailure n) = Just $ Left n
+            in ExitcodeT <$> (sequence (ex <$> x)))
 
 runExitcode ::
   ExitcodeT f a
