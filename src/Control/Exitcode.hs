@@ -17,14 +17,13 @@ module Control.Exitcode (
                         , exitCode
                         , _ExitFailure
                         , _ExitSuccess
-                        , foo
                         ) where
 
 import           Control.Applicative       (Applicative, liftA2)
 import           Control.Lens              hiding ((<.>))
 import           Control.Monad.IO.Class    (MonadIO (liftIO))
 import           Control.Monad.Trans.Class (MonadTrans (lift))
-import           Control.Monad.Reader    (MonadReader (..), Reader, runReader)
+import           Control.Monad.Reader    (MonadReader (..))
 import           Data.Functor.Alt          (Alt, (<!>))
 import           Data.Functor.Apply        (Apply, liftF2, (<.>))
 import           Data.Functor.Bind         (Bind, (>>-))
