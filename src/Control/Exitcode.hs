@@ -21,21 +21,25 @@ module Control.Exitcode (
                         ) where
 
 import           Control.Applicative        (Applicative, liftA2)
-import           Control.Lens               hiding ((<.>))
+import           Control.Lens               (Prism', Iso, _Left, _Right, (^?), 
+                                             prism', iso)
 import           Control.Monad.IO.Class     (MonadIO (liftIO))
-import           Control.Monad.Reader       (MonadReader (..))
+import           Control.Monad.Reader       (MonadReader (ask, local))
 import           Control.Monad.Trans.Class  (MonadTrans (lift))
-import           Control.Monad.Trans.Maybe  (MaybeT(..))
-import           Control.Monad.Writer.Class (MonadWriter (..))
+import           Control.Monad.Trans.Maybe  (MaybeT(MaybeT))
+import           Control.Monad.Writer.Class (MonadWriter (writer, listen, tell, 
+                                             pass))
 import           Data.Functor.Alt           (Alt, (<!>))
 import           Data.Functor.Apply         (Apply, liftF2, (<.>))
 import           Data.Functor.Bind          (Bind, (>>-))
 import           Data.Functor.Classes       (Eq1, Ord1, Show1, compare1, eq1,
                                              showsPrec1, showsUnaryWith)
 import           Data.Functor.Extend        (Extend, duplicated)
+import           Data.Functor.Identity      (Identity(Identity))
 import           Data.Semigroup             (Semigroup, (<>))
 import           Data.Semigroup.Foldable    (Foldable1)
-import           System.Exit                (ExitCode (..))
+import           System.Exit                (ExitCode (ExitSuccess, 
+                                             ExitFailure))
 
 -- hide the constructor, `Left 0` is an invalid state
 data ExitcodeT f a =
