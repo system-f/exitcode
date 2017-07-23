@@ -25,6 +25,7 @@ import           Control.Lens               hiding ((<.>))
 import           Control.Monad.IO.Class     (MonadIO (liftIO))
 import           Control.Monad.Reader       (MonadReader (..))
 import           Control.Monad.Trans.Class  (MonadTrans (lift))
+import           Control.Monad.Trans.Maybe  (MaybeT(..))
 import           Control.Monad.Writer.Class (MonadWriter (..))
 import           Data.Functor.Alt           (Alt, (<!>))
 import           Data.Functor.Apply         (Apply, liftF2, (<.>))
@@ -73,20 +74,27 @@ exitfailure0 n =
     else
       ExitcodeT . pure . Left $ n
 
--- This could almost be an Iso, but it wouldn't be lawful, as:
---   `(Identity (ExitFailure 0)) ^. from exitCode . exitCode == Identity ExitSuccess`
 exitCode ::
-  Traversable f =>
-  Prism'
+  Functor f =>
+  Iso'
     (f ExitCode)
-    (ExitcodeT0 f)
+    (ExitcodeT0 (MaybeT f))
 exitCode =
-  prism'
-    (\(ExitcodeT x) -> either ExitFailure (const ExitSuccess) <$> x)
-    (\x -> let ex ExitSuccess     = Just $ Right ()
-               ex (ExitFailure 0) = Nothing
-               ex (ExitFailure n) = Just $ Left n
-            in ExitcodeT <$> (traverse ex x))
+  iso
+    (\x -> ExitcodeT (MaybeT ((\e ->  case e of
+                                        ExitSuccess ->
+                                          Just (Right ())
+                                        ExitFailure 0 ->
+                                          Nothing
+                                        ExitFailure n ->
+                                          Just (Left n)) <$> x)))
+    (\(ExitcodeT (MaybeT x)) -> (\e ->  case e of
+                                          Just (Right ()) ->
+                                            ExitSuccess
+                                          Nothing ->
+                                            ExitFailure 0
+                                          Just (Left n) ->
+                                            ExitFailure n) <$> x)
 
 runExitcode ::
   ExitcodeT f a
