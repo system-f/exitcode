@@ -75,10 +75,12 @@ exitfailure0 n =
       ExitcodeT . pure . Left $ n
 
 exitCode ::
-  Functor f =>
-  Iso'
+  (Functor f, Functor g) =>
+  Iso
     (f ExitCode)
+    (g ExitCode)
     (ExitcodeT0 (MaybeT f))
+    (ExitcodeT0 (MaybeT g))
 exitCode =
   iso
     (\x -> ExitcodeT (MaybeT ((\e ->  case e of
