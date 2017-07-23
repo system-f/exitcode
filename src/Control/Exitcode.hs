@@ -1,6 +1,7 @@
-{-# LANGUAGE FlexibleInstances #-}
+{-# LANGUAGE FlexibleInstances     #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
-{-# LANGUAGE UndecidableInstances #-}
+{-# LANGUAGE TupleSections         #-}
+{-# LANGUAGE UndecidableInstances  #-}
 
 module Control.Exitcode (
                         -- * Types
@@ -19,20 +20,21 @@ module Control.Exitcode (
                         , _ExitSuccess
                         ) where
 
-import           Control.Applicative       (Applicative, liftA2)
-import           Control.Lens              hiding ((<.>))
-import           Control.Monad.IO.Class    (MonadIO (liftIO))
-import           Control.Monad.Trans.Class (MonadTrans (lift))
-import           Control.Monad.Reader    (MonadReader (..))
-import           Data.Functor.Alt          (Alt, (<!>))
-import           Data.Functor.Apply        (Apply, liftF2, (<.>))
-import           Data.Functor.Bind         (Bind, (>>-))
-import           Data.Functor.Classes      (Eq1, Ord1, Show1, compare1, eq1,
-                                            showsPrec1, showsUnaryWith)
-import           Data.Functor.Extend       (Extend, duplicated)
-import           Data.Semigroup            (Semigroup, (<>))
-import           Data.Semigroup.Foldable   (Foldable1)
-import           System.Exit               (ExitCode (..))
+import           Control.Applicative        (Applicative, liftA2)
+import           Control.Lens               hiding ((<.>))
+import           Control.Monad.IO.Class     (MonadIO (liftIO))
+import           Control.Monad.Reader       (MonadReader (..))
+import           Control.Monad.Trans.Class  (MonadTrans (lift))
+import           Control.Monad.Writer.Class (MonadWriter (..))
+import           Data.Functor.Alt           (Alt, (<!>))
+import           Data.Functor.Apply         (Apply, liftF2, (<.>))
+import           Data.Functor.Bind          (Bind, (>>-))
+import           Data.Functor.Classes       (Eq1, Ord1, Show1, compare1, eq1,
+                                             showsPrec1, showsUnaryWith)
+import           Data.Functor.Extend        (Extend, duplicated)
+import           Data.Semigroup             (Semigroup, (<>))
+import           Data.Semigroup.Foldable    (Foldable1)
+import           System.Exit                (ExitCode (..))
 
 -- hide the constructor, `Left 0` is an invalid state
 data ExitcodeT f a =
@@ -179,3 +181,13 @@ instance MonadTrans ExitcodeT where
 instance MonadReader r m => MonadReader r (ExitcodeT m) where
   ask = lift ask
   local f (ExitcodeT m) = ExitcodeT $ local f m
+
+instance MonadWriter w m => MonadWriter w (ExitcodeT m) where
+  writer t = ExitcodeT . fmap pure $ writer t
+  listen (ExitcodeT m) =
+    let f = (\(e, w) -> either Left (Right . (,w)) e)
+     in ExitcodeT (f <$> listen m)
+  pass e = do
+    ((a, f), w) <- listen e
+    tell (f w)
+    pure a
