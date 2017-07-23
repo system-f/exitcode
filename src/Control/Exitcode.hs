@@ -185,8 +185,8 @@ instance MonadReader r m => MonadReader r (ExitcodeT m) where
 instance MonadWriter w m => MonadWriter w (ExitcodeT m) where
   writer t = ExitcodeT . fmap pure $ writer t
   listen (ExitcodeT m) =
-    let f = (\(e, w) -> either Left (Right . (,w)) e)
-     in ExitcodeT (f <$> listen m)
+     ExitcodeT ((\(e, w) -> (,w) <$> e) <$> listen m)
+  tell = ExitcodeT . fmap Right . tell
   pass e = do
     ((a, f), w) <- listen e
     tell (f w)
