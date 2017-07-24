@@ -21,26 +21,25 @@ module Control.Exitcode (
                         ) where
 
 import           Control.Applicative        (Applicative, liftA2)
-import           Control.Lens               (Prism', Iso, _Left, _Right, (^?), 
-                                             prism', iso)
+import           Control.Lens               (Iso, Prism', iso, prism', (^?),
+                                             _Left, _Right)
 import           Control.Monad.IO.Class     (MonadIO (liftIO))
 import           Control.Monad.Reader       (MonadReader (ask, local))
 import           Control.Monad.Trans.Class  (MonadTrans (lift))
-import           Control.Monad.Trans.Maybe  (MaybeT(MaybeT))
-import           Control.Monad.Writer.Class (MonadWriter (writer, listen, tell, 
-                                             pass))
+import           Control.Monad.Trans.Maybe  (MaybeT (MaybeT))
+import           Control.Monad.Writer.Class (MonadWriter (listen, pass, tell, writer))
 import           Data.Functor.Alt           (Alt, (<!>))
 import           Data.Functor.Apply         (Apply, liftF2, (<.>))
 import           Data.Functor.Bind          (Bind, (>>-))
 import           Data.Functor.Classes       (Eq1, Ord1, Show1, compare1, eq1,
-                                             liftShowList, liftShowsPrec,
-                                             showsPrec1, showsUnaryWith)
+                                             liftEq, liftShowList,
+                                             liftShowsPrec, showsPrec1,
+                                             showsUnaryWith)
 import           Data.Functor.Extend        (Extend, duplicated)
-import           Data.Functor.Identity      (Identity(Identity))
+import           Data.Functor.Identity      (Identity (Identity))
 import           Data.Semigroup             (Semigroup, (<>))
 import           Data.Semigroup.Foldable    (Foldable1)
-import           System.Exit                (ExitCode (ExitSuccess, 
-                                             ExitFailure))
+import           System.Exit                (ExitCode (ExitFailure, ExitSuccess))
 
 -- hide the constructor, `Left 0` is an invalid state
 data ExitcodeT f a =
@@ -211,3 +210,7 @@ instance MonadWriter w m => MonadWriter w (ExitcodeT m) where
     ((a, f), w) <- listen e
     tell (f w)
     pure a
+
+instance Eq1 f => Eq1 (ExitcodeT f) where
+  liftEq f (ExitcodeT a) (ExitcodeT b) =
+    liftEq (liftEq f) a b
