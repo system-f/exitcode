@@ -9,10 +9,12 @@ module Control.Exitcode (
                         , Exitcode
                         , ExitcodeT0
                         , Exitcode0
-                        -- * Constructors
+                        -- * Construction
                         , exitsuccess
                         , exitsuccess0
                         , exitfailure0
+                        , fromExitCode
+                        -- * Extraction
                         , runExitcode
                         -- * Optics
                         , exitCode
@@ -22,7 +24,7 @@ module Control.Exitcode (
 
 import           Control.Applicative        (Applicative, liftA2)
 import           Control.Lens               (Prism', Iso, _Left, _Right, (^?), 
-                                             prism', iso)
+                                             prism', iso, view)
 import           Control.Monad.IO.Class     (MonadIO (liftIO))
 import           Control.Monad.Reader       (MonadReader (ask, local))
 import           Control.Monad.Trans.Class  (MonadTrans (lift))
@@ -36,6 +38,7 @@ import           Data.Functor.Classes       (Eq1, Ord1, Show1, compare1, eq1,
                                              showsPrec1, showsUnaryWith)
 import           Data.Functor.Extend        (Extend, duplicated)
 import           Data.Functor.Identity      (Identity(Identity))
+import           Data.Maybe                 (fromMaybe)
 import           Data.Semigroup             (Semigroup, (<>))
 import           Data.Semigroup.Foldable    (Foldable1)
 import           System.Exit                (ExitCode (ExitSuccess, 
@@ -77,6 +80,14 @@ exitfailure0 n =
       exitsuccess0
     else
       ExitcodeT . pure . Left $ n
+
+fromExitCode ::
+  Functor f =>
+  f ExitCode
+  -> ExitcodeT0 f
+fromExitCode x =
+  let ExitcodeT (MaybeT r) = view exitCode x
+  in  ExitcodeT (fromMaybe (Right ()) <$> r)
 
 exitCode ::
   (Functor f, Functor g) =>
