@@ -30,6 +30,7 @@ import           Data.Functor.Alt           (Alt, (<!>))
 import           Data.Functor.Apply         (Apply, liftF2, (<.>))
 import           Data.Functor.Bind          (Bind, (>>-))
 import           Data.Functor.Classes       (Eq1, Ord1, Show1, compare1, eq1,
+                                             liftShowList, liftShowsPrec,
                                              showsPrec1, showsUnaryWith)
 import           Data.Functor.Extend        (Extend, duplicated)
 import           Data.Semigroup             (Semigroup, (<>))
@@ -160,6 +161,11 @@ instance (Ord1 f, Ord a) => Ord (ExitcodeT f a) where
 instance (Show1 f, Show a) => Show (ExitcodeT f a) where
   showsPrec d (ExitcodeT m) =
     showsUnaryWith showsPrec1 "ExitcodeT" d m
+
+instance Show1 f => Show1 (ExitcodeT f) where
+  liftShowsPrec sp sl d (ExitcodeT fa) =
+    let showsPrecF = liftA2 liftShowsPrec (uncurry liftShowsPrec) (uncurry liftShowList) (sp, sl)
+     in showsUnaryWith showsPrecF "ExitcodeT" d fa
 
 instance Foldable f => Foldable (ExitcodeT f) where
   foldr f z (ExitcodeT x) =
