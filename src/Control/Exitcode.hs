@@ -32,7 +32,7 @@ import           Data.Functor.Alt           (Alt, (<!>))
 import           Data.Functor.Apply         (Apply, liftF2, (<.>))
 import           Data.Functor.Bind          (Bind, (>>-))
 import           Data.Functor.Classes       (Eq1, Ord1, Show1, compare1, eq1,
-                                             liftEq, liftShowList,
+                                             liftCompare, liftEq, liftShowList,
                                              liftShowsPrec, showsPrec1,
                                              showsUnaryWith)
 import           Data.Functor.Extend        (Extend, duplicated)
@@ -167,9 +167,17 @@ instance (Eq1 f, Eq a) => Eq (ExitcodeT f a) where
   ExitcodeT a == ExitcodeT b =
     a `eq1` b
 
+instance Eq1 f => Eq1 (ExitcodeT f) where
+  liftEq f (ExitcodeT a) (ExitcodeT b) =
+    liftEq (liftEq f) a b
+
 instance (Ord1 f, Ord a) => Ord (ExitcodeT f a) where
   ExitcodeT a `compare` ExitcodeT b =
     a `compare1` b
+
+instance (Ord1 f) => Ord1 (ExitcodeT f) where
+  liftCompare f (ExitcodeT a) (ExitcodeT b) =
+    liftCompare (liftCompare f) a b
 
 instance (Show1 f, Show a) => Show (ExitcodeT f a) where
   showsPrec d (ExitcodeT m) =
@@ -210,7 +218,3 @@ instance MonadWriter w m => MonadWriter w (ExitcodeT m) where
     ((a, f), w) <- listen e
     tell (f w)
     pure a
-
-instance Eq1 f => Eq1 (ExitcodeT f) where
-  liftEq f (ExitcodeT a) (ExitcodeT b) =
-    liftEq (liftEq f) a b
