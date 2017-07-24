@@ -21,11 +21,14 @@ module Control.Exitcode (
                         ) where
 
 import           Control.Applicative        (Applicative, liftA2)
-import           Control.Lens               hiding ((<.>))
+import           Control.Lens               (Prism', Iso, _Left, _Right, (^?), 
+                                             prism', iso)
 import           Control.Monad.IO.Class     (MonadIO (liftIO))
-import           Control.Monad.Reader       (MonadReader (..))
+import           Control.Monad.Reader       (MonadReader (ask, local))
 import           Control.Monad.Trans.Class  (MonadTrans (lift))
-import           Control.Monad.Writer.Class (MonadWriter (..))
+import           Control.Monad.Trans.Maybe  (MaybeT(MaybeT))
+import           Control.Monad.Writer.Class (MonadWriter (writer, listen, tell, 
+                                             pass))
 import           Data.Functor.Alt           (Alt, (<!>))
 import           Data.Functor.Apply         (Apply, liftF2, (<.>))
 import           Data.Functor.Bind          (Bind, (>>-))
@@ -33,9 +36,11 @@ import           Data.Functor.Classes       (Eq1, Ord1, Show1, compare1, eq1,
                                              liftShowList, liftShowsPrec,
                                              showsPrec1, showsUnaryWith)
 import           Data.Functor.Extend        (Extend, duplicated)
+import           Data.Functor.Identity      (Identity(Identity))
 import           Data.Semigroup             (Semigroup, (<>))
 import           Data.Semigroup.Foldable    (Foldable1)
-import           System.Exit                (ExitCode (..))
+import           System.Exit                (ExitCode (ExitSuccess, 
+                                             ExitFailure))
 
 -- hide the constructor, `Left 0` is an invalid state
 data ExitcodeT f a =
@@ -74,20 +79,29 @@ exitfailure0 n =
     else
       ExitcodeT . pure . Left $ n
 
--- This could almost be an Iso, but it wouldn't be lawful, as:
---   `(Identity (ExitFailure 0)) ^. from exitCode . exitCode == Identity ExitSuccess`
 exitCode ::
-  Traversable f =>
-  Prism'
+  (Functor f, Functor g) =>
+  Iso
     (f ExitCode)
-    (ExitcodeT0 f)
+    (g ExitCode)
+    (ExitcodeT0 (MaybeT f))
+    (ExitcodeT0 (MaybeT g))
 exitCode =
-  prism'
-    (\(ExitcodeT x) -> either ExitFailure (const ExitSuccess) <$> x)
-    (\x -> let ex ExitSuccess     = Just $ Right ()
-               ex (ExitFailure 0) = Nothing
-               ex (ExitFailure n) = Just $ Left n
-            in ExitcodeT <$> (traverse ex x))
+  iso
+    (\x -> ExitcodeT (MaybeT ((\e ->  case e of
+                                        ExitSuccess ->
+                                          Just (Right ())
+                                        ExitFailure 0 ->
+                                          Nothing
+                                        ExitFailure n ->
+                                          Just (Left n)) <$> x)))
+    (\(ExitcodeT (MaybeT x)) -> (\e ->  case e of
+                                          Just (Right ()) ->
+                                            ExitSuccess
+                                          Nothing ->
+                                            ExitFailure 0
+                                          Just (Left n) ->
+                                            ExitFailure n) <$> x)
 
 runExitcode ::
   ExitcodeT f a
