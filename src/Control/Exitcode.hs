@@ -23,10 +23,11 @@ module Control.Exitcode (
                         ) where
 
 import           Control.Applicative        (Applicative, liftA2)
-import           Control.Lens               (Iso, Prism', iso, prism', (^?),
-                                             _Left, _Right, view)
+import           Control.Lens               (Iso, Prism', iso, prism', view,
+                                             (^?), _Left, _Right)
 import           Control.Monad.IO.Class     (MonadIO (liftIO))
 import           Control.Monad.Reader       (MonadReader (ask, local))
+import           Control.Monad.State.Lazy   (MonadState (get, put))
 import           Control.Monad.Trans.Class  (MonadTrans (lift))
 import           Control.Monad.Trans.Maybe  (MaybeT (MaybeT))
 import           Control.Monad.Writer.Class (MonadWriter (listen, pass, tell, writer))
@@ -38,7 +39,7 @@ import           Data.Functor.Classes       (Eq1, Ord1, Show1, compare1, eq1,
                                              liftShowsPrec, showsPrec1,
                                              showsUnaryWith)
 import           Data.Functor.Extend        (Extend, duplicated)
-import           Data.Functor.Identity      (Identity(Identity))
+import           Data.Functor.Identity      (Identity (Identity))
 import           Data.Maybe                 (fromMaybe)
 import           Data.Semigroup             (Semigroup, (<>))
 import           Data.Semigroup.Foldable    (Foldable1)
@@ -229,3 +230,7 @@ instance MonadWriter w m => MonadWriter w (ExitcodeT m) where
     ((a, f), w) <- listen e
     tell (f w)
     pure a
+
+instance MonadState s m => MonadState s (ExitcodeT m) where
+  get = ExitcodeT $ fmap Right get
+  put = ExitcodeT . fmap Right . put
