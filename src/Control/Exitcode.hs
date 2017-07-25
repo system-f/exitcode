@@ -25,6 +25,7 @@ module Control.Exitcode (
 import           Control.Applicative        (Applicative, liftA2)
 import           Control.Lens               (Iso, Prism', iso, prism', view,
                                              (^?), _Left, _Right)
+import           Control.Monad.Error.Class  (MonadError (..))
 import           Control.Monad.IO.Class     (MonadIO (liftIO))
 import           Control.Monad.Reader       (MonadReader (ask, local))
 import           Control.Monad.State.Lazy   (MonadState (get, put))
@@ -232,5 +233,10 @@ instance MonadWriter w f => MonadWriter w (ExitcodeT f) where
     pure a
 
 instance MonadState s f => MonadState s (ExitcodeT f) where
-  get = ExitcodeT $ fmap Right get
+  get = ExitcodeT (fmap Right get)
   put = ExitcodeT . fmap Right . put
+
+instance MonadError e f => MonadError e (ExitcodeT f) where
+  throwError = ExitcodeT . fmap Right . throwError
+  catchError (ExitcodeT f) h =
+     ExitcodeT $ flip catchError (runExitcode . h) f
