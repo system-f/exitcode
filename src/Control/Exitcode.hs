@@ -217,11 +217,11 @@ instance MonadIO f => MonadIO (ExitcodeT f) where
 instance MonadTrans ExitcodeT where
   lift = ExitcodeT . (>>= pure . pure)
 
-instance MonadReader r m => MonadReader r (ExitcodeT m) where
+instance MonadReader r f => MonadReader r (ExitcodeT f) where
   ask = lift ask
   local f (ExitcodeT m) = ExitcodeT $ local f m
 
-instance MonadWriter w m => MonadWriter w (ExitcodeT m) where
+instance MonadWriter w f => MonadWriter w (ExitcodeT f) where
   writer t = ExitcodeT . fmap pure $ writer t
   listen (ExitcodeT m) =
      ExitcodeT ((\(e, w) -> (,w) <$> e) <$> listen m)
@@ -231,6 +231,6 @@ instance MonadWriter w m => MonadWriter w (ExitcodeT m) where
     tell (f w)
     pure a
 
-instance MonadState s m => MonadState s (ExitcodeT m) where
+instance MonadState s f => MonadState s (ExitcodeT f) where
   get = ExitcodeT $ fmap Right get
   put = ExitcodeT . fmap Right . put
