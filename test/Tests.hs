@@ -1,4 +1,4 @@
-import           Control.Lens             (review, (^?))
+import           Control.Lens             (review, (^?), (^.))
 import           Data.Functor.Classes     (Eq1)
 import           Data.Functor.Identity    (Identity (..), runIdentity)
 import           Data.Monoid              ((<>))
@@ -108,7 +108,7 @@ exitCodePrismTest =
   , testProperty "view ExitFailure n, where n is non-zero" $
       \(NonZero n) -> Identity (ExitFailure n) ^? exitCode == Just (exitfailure0 n)
   , testCase "view ExitFailure 0" $
-      Identity (ExitFailure 0) ^? exitCode @?= Nothing
+      Identity (ExitFailure 0) ^. exitCode @?= ExitcodeT (MaybeT (Identity Nothing))
   , testCase "view ExitSuccess" $
       Identity ExitSuccess ^? exitCode @?= Just exitsuccess0
   ]
