@@ -1,21 +1,22 @@
-import           Control.Lens             (review, (^?), (^.))
-import           Data.Functor.Classes     (Eq1)
-import           Data.Functor.Identity    (Identity (..), runIdentity)
-import           Data.Monoid              ((<>))
+import           Control.Lens              (review, (^.), (^?))
+import           Control.Monad.Trans.Maybe (MaybeT (MaybeT))
+import           Data.Functor.Classes      (Eq1)
+import           Data.Functor.Identity     (Identity (..), runIdentity)
+import           Data.Monoid               ((<>))
 
-import           Test.QuickCheck          (Arbitrary (..), suchThat)
-import           Test.QuickCheck.Checkers (EqProp (..), Test, TestBatch, eq)
-import           Test.QuickCheck.Classes  (applicative, functor)
-import           Test.Tasty               (TestTree, defaultMain, testGroup)
-import           Test.Tasty.HUnit         (testCase, (@?=))
-import           Test.Tasty.QuickCheck    (testProperty)
+import           Test.QuickCheck           (Arbitrary (..), suchThat)
+import           Test.QuickCheck.Checkers  (EqProp (..), Test, TestBatch, eq)
+import           Test.QuickCheck.Classes   (applicative, functor)
+import           Test.Tasty                (TestTree, defaultMain, testGroup)
+import           Test.Tasty.HUnit          (testCase, (@?=))
+import           Test.Tasty.QuickCheck     (testProperty)
 
-import           Control.Exitcode         (Exitcode, ExitcodeT, exitCode,
-                                           exitfailure0, exitsuccess,
-                                           exitsuccess0, runExitcode,
-                                           _ExitFailure, _ExitSuccess)
+import           Control.Exitcode          (Exitcode, ExitcodeT, exitCode,
+                                            exitfailure0, exitsuccess,
+                                            exitsuccess0, runExitcode,
+                                            _ExitFailure, _ExitSuccess)
 
-import           System.Exit              (ExitCode (..))
+import           System.Exit               (ExitCode (..))
 
 newtype EW f a = EW { unEW :: ExitcodeT f a } deriving (Eq, Show)
 
@@ -108,7 +109,7 @@ exitCodePrismTest =
   , testProperty "view ExitFailure n, where n is non-zero" $
       \(NonZero n) -> Identity (ExitFailure n) ^? exitCode == Just (exitfailure0 n)
   , testCase "view ExitFailure 0" $
-      Identity (ExitFailure 0) ^. exitCode @?= ExitcodeT (MaybeT (Identity Nothing))
+      runExitcode (Identity (ExitFailure 0) ^. exitCode) @?= (MaybeT (Identity Nothing))
   , testCase "view ExitSuccess" $
       Identity ExitSuccess ^? exitCode @?= Just exitsuccess0
   ]
