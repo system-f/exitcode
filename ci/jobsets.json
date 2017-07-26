@@ -1,0 +1,15 @@
+{
+    "enabled": 1,
+    "hidden": false,
+    "description": "jobsets",
+    "nixexprinput": "exitcode",
+    "nixexprpath": "jobsets.nix",
+    "checkinterval": 300,
+    "schedulingshares": 1,
+    "enableemail": false,
+    "emailoverride": "",
+    "keepnr": 5,
+    "inputs": {
+        "exitcode": { "type": "git", "value": "https://github.com/qfpl/exitcode", "emailresponsible": false },
+    }
+}
