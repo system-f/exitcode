@@ -10,7 +10,7 @@
             "hidden": false,
             "description": "exitcode",
             "nixexprinput": "exitcode",
-            "nixexprpath": "release.nix",
+            "nixexprpath": "ci/release.nix",
             "checkinterval": 300,
             "schedulingshares": 1,
             "enableemail": false,
