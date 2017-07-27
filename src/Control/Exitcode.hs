@@ -28,6 +28,7 @@ import           Control.Lens               (Iso, Prism', iso, prism', view,
 import           Control.Monad.Error.Class  (MonadError (..))
 import           Control.Monad.IO.Class     (MonadIO (liftIO))
 import           Control.Monad.Reader       (MonadReader (ask, local))
+import           Control.Monad.RWS.Class    (MonadRWS)
 import           Control.Monad.State.Lazy   (MonadState (get, put))
 import           Control.Monad.Trans.Class  (MonadTrans (lift))
 import           Control.Monad.Trans.Maybe  (MaybeT (MaybeT))
@@ -240,3 +241,5 @@ instance MonadError e f => MonadError e (ExitcodeT f) where
   throwError = ExitcodeT . fmap Right . throwError
   catchError (ExitcodeT f) h =
      ExitcodeT $ flip catchError (runExitcode . h) f
+
+instance MonadRWS r w s f => MonadRWS r w s (ExitcodeT f)
