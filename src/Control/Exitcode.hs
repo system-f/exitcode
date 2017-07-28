@@ -25,6 +25,7 @@ module Control.Exitcode (
 import           Control.Applicative        (Applicative, liftA2)
 import           Control.Lens               (Iso, Prism', iso, prism', view,
                                              (^?), _Left, _Right)
+import           Control.Monad.Cont.Class   (MonadCont (..))
 import           Control.Monad.Error.Class  (MonadError (..))
 import           Control.Monad.IO.Class     (MonadIO (liftIO))
 import           Control.Monad.Reader       (MonadReader (ask, local))
@@ -243,3 +244,16 @@ instance MonadError e f => MonadError e (ExitcodeT f) where
      ExitcodeT $ flip catchError (runExitcode . h) f
 
 instance MonadRWS r w s f => MonadRWS r w s (ExitcodeT f)
+
+-- Given the embedded `Either` we can only handle computations that use `Either`.
+-- This code taken from the ExceptT instance:
+--   https://hackage.haskell.org/package/transformers-0.5.4.0/docs/src/Control.Monad.Trans.Except.html#line-237
+instance MonadCont f => MonadCont (ExitcodeT f) where
+  callCC = liftCallCC callCC
+
+liftCallCC :: Functor f => (((Either Int a -> f (Either Int b)) -> f (Either Int a)) -> f (Either Int a))
+           -> ((a -> ExitcodeT f b) -> ExitcodeT f a)
+           -> ExitcodeT f a
+liftCallCC callCC' f =
+  ExitcodeT . callCC' $
+    \c -> runExitcode (f (\a -> ExitcodeT (c (Right a))))
