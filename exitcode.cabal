@@ -23,25 +23,26 @@ source-repository   head
 
 library
   exposed-modules:     Control.Exitcode
-  build-depends:       base >=4.9 && <4.10
+  build-depends:       base >=4.8 && <4.10
                      , lens >=4.15 && <4.16
                      , mtl >=2.2 && <2.3
                      , semigroupoids >=5.1 && <5.3
-                     , transformers >=0.5.2 && <5.5
+                     , semigroups >=0.18 && <0.19
+                     , transformers >=0.4.1 && <5.5
   hs-source-dirs:      src
   default-language:    Haskell2010
   ghc-options:         -Wall -Werror
 
 test-suite             tests
   build-depends:       QuickCheck >=2.9.2 && <2.11
-                     , base >=4.9 && <4.10
+                     , base >=4.8 && <4.10
                      , checkers >=0.4.6 && <0.5
                      , exitcode
                      , lens >=4.15 && <4.16
                      , tasty >=0.11 && <0.12
                      , tasty-hunit >=0.9 && <0.10
                      , tasty-quickcheck >=0.8.4 && <0.10
-                     , transformers >=0.5.2 && <5.5
+                     , transformers >=0.4.1 && <5.5
   type:                exitcode-stdio-1.0
   main-is:             Tests.hs
   hs-source-dirs:      test

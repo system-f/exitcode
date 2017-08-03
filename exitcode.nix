@@ -1,16 +1,17 @@
 { mkDerivation, base, checkers, lens, mtl, QuickCheck
-, semigroupoids, stdenv, tasty, tasty-hunit, tasty-quickcheck
-, transformers
+, semigroupoids, semigroups, stdenv, tasty, tasty-hunit
+, tasty-quickcheck, transformers
 }:
 mkDerivation {
   pname = "exitcode";
   version = "0.1.0.0";
   src = ./.;
   libraryHaskellDepends = [
-    base lens mtl semigroupoids transformers
+    base lens mtl semigroupoids semigroups transformers
   ];
   testHaskellDepends = [
-    base checkers lens QuickCheck tasty tasty-hunit tasty-quickcheck transformers
+    base checkers lens QuickCheck tasty tasty-hunit tasty-quickcheck
+    transformers
   ];
   homepage = "https://github.com/qfpl/exitcode";
   description = "Monad transformer for exit codes";
