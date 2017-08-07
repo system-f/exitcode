@@ -15,7 +15,7 @@ maintainer:          Queensland Functional Programming Lab <oᴉ˙ldɟb@llǝʞs�
 copyright:           Copyright (C) 2017 Commonwealth Scientific and Industrial Research Organisation (CSIRO)
 category:            Control
 build-type:          Simple
-extra-source-files:  ChangeLog.md
+extra-source-files:  changelog.md
 cabal-version:       >=1.10
 homepage:            https://github.com/qfpl/exitcode
 bug-reports:         https://github.com/qfpl/exitcode/issues
