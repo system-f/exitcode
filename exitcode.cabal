@@ -3,12 +3,15 @@
 name:                exitcode
 version:             0.1.0.0
 synopsis:            Monad transformer for exit codes
--- description:
+description:       
+  <<http://i.imgur.com/uZnp9ke.png>>
+  .
+  Monad transformer for exit codes
 homepage:            https://github.com/qfpl/exitcode
 license:             BSD3
 license-file:        LICENSE
-author:              QFPL
-maintainer:          Queensland Functional Programming Lab oᴉ˙ldɟb@llǝʞsɐɥ
+author:              Queensland Functional Programming Lab <oᴉ˙ldɟb@llǝʞsɐɥ>
+maintainer:          Queensland Functional Programming Lab <oᴉ˙ldɟb@llǝʞsɐɥ>
 copyright:           Copyright (C) 2017 Commonwealth Scientific and Industrial Research Organisation (CSIRO)
 category:            Control
 build-type:          Simple
