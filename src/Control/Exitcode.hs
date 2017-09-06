@@ -58,7 +58,9 @@ import           Data.Semigroup             (Semigroup, (<>))
 import           Data.Semigroup.Foldable    (Foldable1)
 import           System.Exit                (ExitCode (ExitFailure, ExitSuccess))
 
--- hide the constructor, `Left 0` is an invalid state
+-- | An exit code status where failing with a value `0` cannot be represented.
+--
+-- Transformer for either a non-zero exit code (`Int`) or a value :: `a`.
 data ExitcodeT f a =
   ExitcodeT (f (Either Int a))
 
@@ -71,6 +73,7 @@ type ExitcodeT0 f =
 type Exitcode0 =
   Exitcode ()
 
+-- | Construct a succeeding exit code with the given value.
 exitsuccess ::
   Applicative f =>
   a
@@ -78,12 +81,16 @@ exitsuccess ::
 exitsuccess =
   ExitcodeT . pure . Right
 
+-- | Construct a succeeding exit code with unit.
 exitsuccess0 ::
   Applicative f =>
   ExitcodeT0 f
 exitsuccess0 =
   exitsuccess ()
 
+-- | Construct a failing exit code with the given status.
+--
+-- If the given status is `0` then the exit code will succeed with unit.
 exitfailure0 ::
   Applicative f =>
   Int
