@@ -1,6 +1,6 @@
-{ mkDerivation, base, checkers, lens, mtl, QuickCheck
-, semigroupoids, semigroups, stdenv, tasty, tasty-hunit
-, tasty-quickcheck, transformers
+{ mkDerivation, base, checkers, hedgehog, lens, mtl, semigroupoids
+, semigroups, stdenv, tasty, tasty-hedgehog, tasty-hunit
+, transformers
 }:
 mkDerivation {
   pname = "exitcode";
@@ -10,7 +10,7 @@ mkDerivation {
     base lens mtl semigroupoids semigroups transformers
   ];
   testHaskellDepends = [
-    base checkers lens QuickCheck tasty tasty-hunit tasty-quickcheck
+    base checkers hedgehog lens tasty tasty-hedgehog tasty-hunit
     transformers
   ];
   homepage = "https://github.com/qfpl/exitcode";
