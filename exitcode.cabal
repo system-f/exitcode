@@ -9,7 +9,7 @@ description:
   Monad transformer for exit codes
 homepage:            https://github.com/qfpl/exitcode
 license:             BSD3
-license-file:        LICENSE
+license-file:        LICENCE
 author:              Queensland Functional Programming Lab <oᴉ˙ldɟb@llǝʞsɐɥ>
 maintainer:          Queensland Functional Programming Lab <oᴉ˙ldɟb@llǝʞsɐɥ>
 copyright:           Copyright (C) 2017 Commonwealth Scientific and Industrial Research Organisation (CSIRO)
