@@ -7,7 +7,6 @@ description:
   <<http://i.imgur.com/uZnp9ke.png>>
   .
   Monad transformer for exit codes
-homepage:            https://github.com/qfpl/exitcode
 license:             BSD3
 license-file:        LICENCE
 author:              Queensland Functional Programming Lab <oᴉ˙ldɟb@llǝʞsɐɥ>
