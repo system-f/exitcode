@@ -42,7 +42,7 @@ import           Control.Monad.Writer.Class (MonadWriter (listen, pass, tell, wr
 import           Data.Functor.Alt           (Alt, (<!>))
 import           Data.Functor.Apply         (Apply, liftF2, (<.>))
 import           Data.Functor.Bind          (Bind, (>>-))
-# if MIN_VERSION_base(4,9,0)
+# if MIN_VERSION_transformers(0,5,0)
 import           Data.Functor.Classes       (Eq1, Ord1, Show1, compare1, eq1,
                                              liftCompare, liftEq, liftShowList,
                                              liftShowsPrec, showsPrec1,
@@ -200,7 +200,7 @@ instance (Eq1 f, Eq a) => Eq (ExitcodeT f a) where
     a `eq1` b
 
 instance Eq1 f => Eq1 (ExitcodeT f) where
-# if MIN_VERSION_base(4,9,0)
+# if MIN_VERSION_transformers(0,5,0)
   liftEq f (ExitcodeT a) (ExitcodeT b) =
     liftEq (liftEq f) a b
 # else
@@ -213,7 +213,7 @@ instance (Ord1 f, Ord a) => Ord (ExitcodeT f a) where
     a `compare1` b
 
 instance (Ord1 f) => Ord1 (ExitcodeT f) where
-# if MIN_VERSION_base(4,9,0)
+# if MIN_VERSION_transformers(0,5,0)
   liftCompare f (ExitcodeT a) (ExitcodeT b) =
     liftCompare (liftCompare f) a b
 # else
@@ -223,14 +223,14 @@ instance (Ord1 f) => Ord1 (ExitcodeT f) where
 
 instance (Show1 f, Show a) => Show (ExitcodeT f a) where
   showsPrec d (ExitcodeT m) =
-# if MIN_VERSION_base(4,9,0)
+# if MIN_VERSION_transformers(0,5,0)
     showsUnaryWith showsPrec1 "ExitcodeT" d m
 # else
     showsUnary1 "ExitcodeT" d m
 # endif
 
 instance Show1 f => Show1 (ExitcodeT f) where
-# if MIN_VERSION_base(4,9,0)
+# if MIN_VERSION_transformers(0,5,0)
   liftShowsPrec sp sl d (ExitcodeT fa) =
     let showsPrecF = liftA2 liftShowsPrec (uncurry liftShowsPrec) (uncurry liftShowList) (sp, sl)
      in showsUnaryWith showsPrecF "ExitcodeT" d fa
