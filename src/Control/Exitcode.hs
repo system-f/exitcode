@@ -161,11 +161,11 @@ _ExitFailure =
 
 _ExitSuccess ::
   Prism'
-    Exitcode0
-    ()
+    (Exitcode a)
+    a
 _ExitSuccess =
   prism'
-    (\() -> exitsuccess0)
+    exitsuccess
     (\(ExitcodeT (Identity x)) -> x ^? _Right)
 
 instance Functor f => Functor (ExitcodeT f) where
