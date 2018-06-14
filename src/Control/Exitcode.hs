@@ -2,6 +2,7 @@
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE TupleSections         #-}
 {-# LANGUAGE UndecidableInstances  #-}
+{-# LANGUAGE RankNTypes  #-}
 {-# LANGUAGE CPP                   #-}
 
 module Control.Exitcode (
@@ -33,6 +34,7 @@ import           Control.Lens               (Iso, Prism', iso, prism', view,
 import           Control.Monad.Cont.Class   (MonadCont (..))
 import           Control.Monad.Error.Class  (MonadError (..))
 import           Control.Monad.IO.Class     (MonadIO (liftIO))
+import           Control.Monad.Morph        (MFunctor(hoist), MMonad(embed))
 import           Control.Monad.Reader       (MonadReader (ask, local))
 import           Control.Monad.RWS.Class    (MonadRWS)
 import           Control.Monad.State.Lazy   (MonadState (get, put))
@@ -293,3 +295,14 @@ liftCallCC :: Functor f => (((Either Int a -> f (Either Int b)) -> f (Either Int
 liftCallCC callCC' f =
   ExitcodeT . callCC' $
     \c -> runExitcode (f (\a -> ExitcodeT (c (Right a))))
+
+instance MFunctor ExitcodeT where
+  hoist nat (ExitcodeT x) =
+    ExitcodeT (nat x)
+
+instance MMonad ExitcodeT where
+  embed nat (ExitcodeT x) = 
+    let ex (Left e) = Left e
+        ex (Right (Left e)) = Left e
+        ex (Right (Right a)) = Right a
+    in  ExitcodeT (fmap ex (let ExitcodeT y = nat x in y))

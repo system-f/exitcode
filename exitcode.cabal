@@ -28,6 +28,7 @@ library
   exposed-modules:     Control.Exitcode
   build-depends:       base >=4.8 && <4.11
                      , lens >=4.15 && < 4.17
+                     , mmorph >= 1.0 && < 1.2
                      , mtl >=2.2 && <2.3
                      , semigroupoids >=5.1 && <5.3
                      , semigroups >=0.16 && <0.19
