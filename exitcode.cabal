@@ -1,7 +1,7 @@
 -- documentation, see http://haskell.org/cabal/users-guide/
 
 name:                exitcode
-version:             0.1.0.0
+version:             0.1.0.1
 synopsis:            Monad transformer for exit codes
 description:       
   <<http://i.imgur.com/uZnp9ke.png>>
