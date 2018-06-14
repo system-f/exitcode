@@ -2,7 +2,6 @@
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE TupleSections         #-}
 {-# LANGUAGE UndecidableInstances  #-}
-{-# LANGUAGE RankNTypes  #-}
 {-# LANGUAGE CPP                   #-}
 
 module Control.Exitcode (
