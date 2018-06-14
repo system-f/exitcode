@@ -11,7 +11,7 @@ license:             BSD3
 license-file:        LICENCE
 author:              Queensland Functional Programming Lab <oᴉ˙ldɟb@llǝʞsɐɥ>
 maintainer:          Queensland Functional Programming Lab <oᴉ˙ldɟb@llǝʞsɐɥ>
-copyright:           Copyright (C) 2017 Commonwealth Scientific and Industrial Research Organisation (CSIRO)
+copyright:           Copyright (C) 2017,2018 Commonwealth Scientific and Industrial Research Organisation (CSIRO)
 category:            Control
 build-type:          Simple
 extra-source-files:  changelog.md
