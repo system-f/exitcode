@@ -1,3 +1,4 @@
+{-# LANGUAGE NoImplicitPrelude     #-}
 {-# LANGUAGE FlexibleInstances     #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE TupleSections         #-}
@@ -23,13 +24,11 @@ module Control.Exitcode (
                         , _ExitSuccess
                         ) where
 
-# if MIN_VERSION_base(4,9,0)
-import           Control.Applicative        (Applicative, liftA2)
-# else
-import           Control.Applicative        (liftA2)
-# endif
+import           Control.Applicative        (Applicative(pure, (<*>)), liftA2)
+import           Control.Category           ((.))
 import           Control.Lens               (Iso, Prism', iso, prism', view,
                                              (^?), _Left, _Right)
+import           Control.Monad              (Monad(return, (>>=)))
 import           Control.Monad.Cont.Class   (MonadCont (..))
 import           Control.Monad.Error.Class  (MonadError (..))
 import           Control.Monad.IO.Class     (MonadIO (liftIO))
@@ -40,6 +39,11 @@ import           Control.Monad.State.Lazy   (MonadState (get, put))
 import           Control.Monad.Trans.Class  (MonadTrans (lift))
 import           Control.Monad.Trans.Maybe  (MaybeT (MaybeT))
 import           Control.Monad.Writer.Class (MonadWriter (listen, pass, tell, writer))
+import           Data.Either                (Either(Left, Right), either)
+import           Data.Eq                    (Eq((==)))
+import           Data.Foldable              (Foldable(foldr))
+import           Data.Function              (($), const, flip)
+import           Data.Functor               (Functor(fmap), (<$>))
 import           Data.Functor.Alt           (Alt, (<!>))
 import           Data.Functor.Apply         (Apply, liftF2, (<.>))
 import           Data.Functor.Bind          (Bind, (>>-))
@@ -54,9 +58,14 @@ import           Data.Functor.Classes       (Eq1, Ord1, Show1, compare1, eq1,
 # endif
 import           Data.Functor.Extend        (Extend, duplicated)
 import           Data.Functor.Identity      (Identity (Identity))
-import           Data.Maybe                 (fromMaybe)
+import           Data.Int                   (Int)
+import           Data.Maybe                 (Maybe(Just, Nothing), fromMaybe)
+import           Data.Ord                   (Ord(compare))
 import           Data.Semigroup             (Semigroup, (<>))
 import           Data.Semigroup.Foldable    (Foldable1)
+import           Data.Traversable           (Traversable(traverse))
+import           Data.Tuple                 (uncurry)
+import           Prelude                    (Show(showsPrec))
 import           System.Exit                (ExitCode (ExitFailure, ExitSuccess))
 
 -- | An exit code status where failing with a value `0` cannot be represented.
