@@ -26,8 +26,8 @@ module Control.Exitcode (
 
 import           Control.Applicative        (Applicative(pure, (<*>)), liftA2)
 import           Control.Category           ((.))
-import           Control.Lens               (Iso, Prism', iso, prism', view,
-                                             (^?), _Left, _Right)
+import           Control.Lens               (Iso, Prism', Prism, iso, prism', prism, view, over,
+                                             (^?), _Left)
 import           Control.Monad              (Monad(return, (>>=)))
 import           Control.Monad.Cont.Class   (MonadCont (..))
 import           Control.Monad.Error.Class  (MonadError (..))
@@ -160,13 +160,17 @@ _ExitFailure =
     (\(ExitcodeT (Identity x)) -> x ^? _Left)
 
 _ExitSuccess ::
-  Prism'
+  Prism
     (Exitcode a)
+    (Exitcode b)
     a
+    b
 _ExitSuccess =
-  prism'
+  prism
     exitsuccess
-    (\(ExitcodeT (Identity x)) -> x ^? _Right)
+    (\(ExitcodeT (Identity x)) ->
+      over _Left (ExitcodeT . Identity . Left) x
+    )
 
 instance Functor f => Functor (ExitcodeT f) where
   fmap f (ExitcodeT x) =

@@ -4,7 +4,7 @@
 }:
 mkDerivation {
   pname = "exitcode";
-  version = "0.1.0.0";
+  version = "0.1.0.2";
   src = ./.;
   libraryHaskellDepends = [
     base lens mmorph mtl semigroupoids semigroups transformers

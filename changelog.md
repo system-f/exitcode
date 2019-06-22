@@ -1,3 +1,7 @@
+0.1.0.2
+
+* `_ExitSuccess` more polymorphic.
+
 0.1.0.1
 
 * Make `_ExitSuccess` more polymorphic. It was unnecessarily specialised to `()`.
