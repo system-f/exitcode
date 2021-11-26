@@ -313,7 +313,7 @@ instance MFunctor ExitcodeT where
     ExitcodeT (nat x)
 
 instance MMonad ExitcodeT where
-  embed nat (ExitcodeT x) = 
+  embed nat (ExitcodeT x) =
     let ex (Left e) = Left e
         ex (Right (Left e)) = Left e
         ex (Right (Right a)) = Right a
