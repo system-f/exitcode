@@ -13,7 +13,7 @@ mkDerivation {
     base checkers hedgehog lens QuickCheck tasty tasty-hedgehog
     tasty-hunit tasty-quickcheck transformers
   ];
-  homepage = "https://github.com/qfpl/exitcode";
+  homepage = "https://github.com/system-f/exitcode";
   description = "Monad transformer for exit codes";
   license = stdenv.lib.licenses.bsd3;
 }

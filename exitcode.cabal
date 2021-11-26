@@ -3,26 +3,27 @@
 name:                exitcode
 version:             0.1.0.2
 synopsis:            Monad transformer for exit codes
-description:       
-  <<https://raw.githubusercontent.com/qfpl/assets/master/data61-transparent-bg.png>>
+description:
+  <<https://system-f.gitlab.io/logo/systemf-450x450.jpg>>
   .
   Monad transformer for exit codes
 license:             BSD3
 license-file:        LICENCE
 author:              Queensland Functional Programming Lab <oᴉ˙ldɟb@llǝʞsɐɥ>
-maintainer:          Queensland Functional Programming Lab <oᴉ˙ldɟb@llǝʞsɐɥ>
+maintainer:          Tony Morris <oᴉ˙ldɟb@llǝʞsɐɥ>
 copyright:           Copyright (C) 2017,2018 Commonwealth Scientific and Industrial Research Organisation (CSIRO)
+copyright:           Copyright (C) 2019-2021 Tony Morris
 category:            Control
 build-type:          Simple
 extra-source-files:  changelog.md
 cabal-version:       >=1.10
-homepage:            https://github.com/qfpl/exitcode
-bug-reports:         https://github.com/qfpl/exitcode/issues
+homepage:            https://github.com/system-f/exitcode
+bug-reports:         https://github.com/system-f/exitcode/issues
 tested-with:         GHC == 7.10.3, GHC == 8.0.2, GHC == 8.2.2, GHC == 8.4.3, GHC == 8.6.1
 
 source-repository   head
   type:             git
-  location:         git@github.com:qfpl/exitcode.git
+  location:         git@github.com:system-f/exitcode.git
 
 library
   exposed-modules:     Control.Exitcode
