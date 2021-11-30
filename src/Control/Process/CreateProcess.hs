@@ -1,3 +1,4 @@
+{-# OPTIONS_GHC -Wall #-}
 {-# LANGUAGE NoImplicitPrelude #-}
 
 module Control.Process.CreateProcess(
@@ -31,78 +32,78 @@ import System.Process(StdStream(..), CreateProcess(CreateProcess))
 import System.Process.Internals(GroupID, UserID)
 
 class HasCreateProcess a where
-  createProcess ::
+  create_process ::
     Lens' a CreateProcess
   child_group ::
     Lens' a (Maybe GroupID)
   {-# INLINE child_group #-}
   child_group =
-    createProcess . child_group
+    create_process . child_group
   child_user ::
     Lens' a (Maybe UserID)
   {-# INLINE child_user #-}
   child_user =
-    createProcess . child_user
+    create_process . child_user
   close_fds ::
     Lens' a Bool
   {-# INLINE close_fds #-}
   close_fds =
-    createProcess . close_fds
+    create_process . close_fds
   create_group ::
     Lens' a Bool
   {-# INLINE create_group #-}
   create_group =
-    createProcess . create_group
+    create_process . create_group
   create_new_console ::
     Lens' a Bool
   {-# INLINE create_new_console #-}
   create_new_console =
-    createProcess . create_new_console
+    create_process . create_new_console
   cwd ::
     Lens' a (Maybe FilePath)
   {-# INLINE cwd #-}
   cwd =
-    createProcess . cwd
+    create_process . cwd
   delegate_ctlc ::
     Lens' a Bool
   {-# INLINE delegate_ctlc #-}
   delegate_ctlc =
-    createProcess . delegate_ctlc
+    create_process . delegate_ctlc
   detach_console ::
     Lens' a Bool
   {-# INLINE detach_console #-}
   detach_console =
-    createProcess . detach_console
+    create_process . detach_console
   env ::
     Lens' a (Maybe [(String, String)])
   {-# INLINE env #-}
   env =
-    createProcess . env
+    create_process . env
   new_session ::
     Lens' a Bool
   {-# INLINE new_session #-}
   new_session =
-    createProcess . new_session
+    create_process . new_session
   std_err ::
     Lens' a StdStream
   {-# INLINE std_err #-}
   std_err =
-    createProcess . std_err
+    create_process . std_err
   std_in ::
     Lens' a StdStream
   {-# INLINE std_in #-}
   std_in =
-    createProcess . std_in
+    create_process . std_in
   std_out ::
     Lens' a StdStream
   {-# INLINE std_out #-}
   std_out =
-    createProcess . std_out
+    create_process . std_out
   use_process_jobs ::
     Lens' a Bool
   {-# INLINE use_process_jobs #-}
   use_process_jobs =
-    createProcess . use_process_jobs
+    create_process . use_process_jobs
 
   cwd' ::
     Traversal' a FilePath
@@ -166,7 +167,7 @@ class HasCreateProcess a where
     use_process_jobs . only True
 
 instance HasCreateProcess CreateProcess where
-  createProcess =
+  create_process =
     id
   child_group f (CreateProcess csc cw en sti sto ste clf crg dct dcl cnc nss chg chu upj) =
     fmap (\chg' -> CreateProcess csc cw en sti sto ste clf crg dct dcl cnc nss chg' chu upj) (f chg)

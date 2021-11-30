@@ -1,3 +1,4 @@
+{-# OPTIONS_GHC -Wall #-}
 {-# LANGUAGE NoImplicitPrelude     #-}
 {-# LANGUAGE FlexibleInstances     #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
@@ -16,6 +17,7 @@ module Control.Exitcode (
                         , exitsuccess0
                         , exitfailure0
                         , fromExitCode
+                        , fromExitCode'
                         -- * Extraction
                         , runExitcode
                         -- * Optics
@@ -119,6 +121,12 @@ fromExitCode ::
 fromExitCode x =
   let ExitcodeT (MaybeT r) = view exitCode x
   in  ExitcodeT (fromMaybe (Right ()) <$> r)
+
+fromExitCode' ::
+  ExitCode
+  -> Exitcode0
+fromExitCode' =
+  fromExitCode . Identity
 
 exitCode ::
   (Functor f, Functor g) =>
