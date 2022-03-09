@@ -82,6 +82,7 @@ import System.Exit ( ExitCode(..) )
 
 -- $setup
 -- >>> import Prelude
+-- >>> import Control.Lens
 
 -- | An exit code status where failing with a value `0` cannot be represented.
 --
@@ -239,6 +240,8 @@ runExitcode (ExitcodeT x) =
 -- Nothing
 -- >>> review _ExitFailure 99
 -- ExitcodeT (Identity (Left 99))
+-- >>> review _ExitFailure 0
+-- ExitcodeT (Identity (Right ()))
 _ExitFailure ::
   Prism'
     Exitcode0
