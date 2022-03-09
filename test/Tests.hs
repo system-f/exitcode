@@ -25,13 +25,13 @@ import           System.Exit               (ExitCode (..))
 
 newtype EW f a = EW { unEW :: ExitcodeT f a } deriving (Eq, Show)
 
-instance (Applicative f, Arbitrary a) => Arbitrary (EW f a) where
+instance (Monad f, Arbitrary a) => Arbitrary (EW f a) where
   arbitrary = fmap (EW . pure) TQC.arbitrary
 
 instance Functor f => Functor (EW f) where
   fmap f = EW . fmap f . unEW
 
-instance Applicative f => Applicative (EW f) where
+instance Monad f => Applicative (EW f) where
   pure = EW . pure
   EW f <*> EW a = EW (f <*> a)
 
