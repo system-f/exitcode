@@ -1,3 +1,9 @@
+0.1.0.3
+
+* Fix bug in `Extend` instance.
+* Remove `Extend` instance.
+* Add more constructor functions.
+
 0.1.0.2
 
 * `_ExitSuccess` more polymorphic.
