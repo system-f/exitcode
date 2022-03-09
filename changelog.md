@@ -1,3 +1,8 @@
+0.1.0.4
+
+* Fix `Semigroup` instance.
+* Implement `Monoid` instance.
+
 0.1.0.3
 
 * Fix bug in `Extend` instance.

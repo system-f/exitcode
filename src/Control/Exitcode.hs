@@ -312,6 +312,12 @@ instance Monad f => Alt (ExitcodeT f) where
 --
 -- >>> exitsuccess "abc" <> exitsuccess "def" :: ExitcodeT Identity String
 -- ExitcodeT (Identity (Right "abcdef"))
+-- >>> exitsuccess "abc" <> exitCodeValue 99 "def" :: ExitcodeT Identity String
+-- ExitcodeT (Identity (Right "abc"))
+-- >>> exitCodeValue 99 "abc" <> exitsuccess "def" :: ExitcodeT Identity String
+-- ExitcodeT (Identity (Right "def"))
+-- >>> exitCodeValue 99 "abc" <> exitCodeValue 88 "def" :: ExitcodeT Identity String
+-- ExitcodeT (Identity (Left 88))
 instance (Semigroup a, Applicative f) => Semigroup (ExitcodeT f a) where
   ExitcodeT a <> ExitcodeT b =
     let jn (Left _) x  = x
@@ -319,6 +325,10 @@ instance (Semigroup a, Applicative f) => Semigroup (ExitcodeT f a) where
         jn (Right a1) (Right a2) = Right (a1 <> a2)
     in  ExitcodeT (liftA2 jn a b)
 
+-- |
+--
+-- >>> mempty :: ExitcodeT Identity String
+-- ExitcodeT (Identity (Right ""))
 instance (Monoid a, Applicative f) => Monoid (ExitcodeT f a) where
   mempty =
     ExitcodeT (pure (Right mempty))
