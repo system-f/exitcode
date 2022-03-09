@@ -19,7 +19,6 @@ module Control.Exitcode (
 , fromExitCode
 , fromExitCode'
 , fromExitCodeValue
-, fromExitCodeValue'
 -- * Extraction
 , runExitcode
 -- * Optics
@@ -137,11 +136,7 @@ exitfailure0 ::
   Int
   -> ExitcodeT0 f
 exitfailure0 n =
-  if n == 0
-    then
-      exitsuccess0
-    else
-      ExitcodeT . pure . Left $ n
+  fromExitCodeValue n ()
 
 -- | From base exitcode.
 --
@@ -184,13 +179,6 @@ fromExitCodeValue ::
   -> ExitcodeT f a
 fromExitCodeValue n a =
   ExitcodeT (pure (bool (Left n) (Right a) (n == 0)))
-
-fromExitCodeValue' ::
-  Applicative f =>
-  Int
-  -> ExitcodeT0 f
-fromExitCodeValue' n =
-  fromExitCodeValue n ()
 
 -- | Isomorphism from base exitcode to underlying `Maybe (Either Int ())` where `Int` is non-zero.
 --
