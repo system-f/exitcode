@@ -126,6 +126,12 @@ exitsuccess0 =
 --
 -- >>> exitfailure0 99 :: ExitcodeT0 Identity
 -- ExitcodeT (Identity (Left 99))
+-- >>> exitsuccess "abc" <> fromExitCodeValue 99 "def" :: ExitcodeT Identity String
+-- ExitcodeT (Identity (Right "abc"))
+-- >>> fromExitCodeValue 99 "abc" <> exitsuccess "def" :: ExitcodeT Identity String
+-- ExitcodeT (Identity (Right "def"))
+-- >>> fromExitCodeValue 99 "abc" <> fromExitCodeValue 88 "def" :: ExitcodeT Identity String
+-- ExitcodeT (Identity (Left 88))
 exitfailure0 ::
   Applicative f =>
   Int
@@ -313,6 +319,10 @@ instance Monad f => Alt (ExitcodeT f) where
   ExitcodeT a <!> ExitcodeT b =
     ExitcodeT (a >>= either (const b) (pure a))
 
+-- |
+--
+-- >>> exitsuccess "abc" <> exitsuccess "def" :: ExitcodeT Identity String
+-- ExitcodeT (Identity (Right "abc"))
 instance Monad f => Semigroup (ExitcodeT f a) where
   ExitcodeT a <> ExitcodeT b =
     ExitcodeT (a >>= either (const b) (pure a))
