@@ -16,9 +16,9 @@ module Control.Exitcode (
 , exitsuccess
 , exitsuccess0
 , exitfailure0
+, exitCodeValue
 , fromExitCode
 , fromExitCode'
-, fromExitCodeValue
 -- * Extraction
 , runExitcode
 -- * Optics
@@ -72,6 +72,7 @@ import Data.Functor.Extend ( Extend(..) )
 import Data.Functor.Identity ( Identity(Identity) )
 import Data.Int ( Int )
 import Data.Maybe ( Maybe(Nothing, Just), fromMaybe )
+import Data.Monoid hiding (Alt)
 import Data.Ord ( Ord(compare) )
 import Data.Semigroup ( Semigroup((<>)) )
 import Data.Traversable ( Traversable(traverse) )
@@ -125,18 +126,32 @@ exitsuccess0 =
 --
 -- >>> exitfailure0 99 :: ExitcodeT0 Identity
 -- ExitcodeT (Identity (Left 99))
--- >>> exitsuccess "abc" <> fromExitCodeValue 99 "def" :: ExitcodeT Identity String
+-- >>> exitsuccess "abc" <> exitCodeValue 99 "def" :: ExitcodeT Identity String
 -- ExitcodeT (Identity (Right "abc"))
--- >>> fromExitCodeValue 99 "abc" <> exitsuccess "def" :: ExitcodeT Identity String
+-- >>> exitCodeValue 99 "abc" <> exitsuccess "def" :: ExitcodeT Identity String
 -- ExitcodeT (Identity (Right "def"))
--- >>> fromExitCodeValue 99 "abc" <> fromExitCodeValue 88 "def" :: ExitcodeT Identity String
+-- >>> exitCodeValue 99 "abc" <> exitCodeValue 88 "def" :: ExitcodeT Identity String
 -- ExitcodeT (Identity (Left 88))
 exitfailure0 ::
   Applicative f =>
   Int
   -> ExitcodeT0 f
 exitfailure0 n =
-  fromExitCodeValue n ()
+  exitCodeValue n ()
+
+-- |
+--
+-- >>> exitCodeValue 99 "abc" :: ExitcodeT Identity String
+-- ExitcodeT (Identity (Left 99))
+-- >>> exitCodeValue 0 "abc" :: ExitcodeT Identity String
+-- ExitcodeT (Identity (Right "abc"))
+exitCodeValue ::
+  Applicative f =>
+  Int
+  -> a
+  -> ExitcodeT f a
+exitCodeValue n a =
+  ExitcodeT (pure (bool (Left n) (Right a) (n == 0)))
 
 -- | From base exitcode.
 --
@@ -165,20 +180,6 @@ fromExitCode' ::
   -> Exitcode0
 fromExitCode' =
   fromExitCode . Identity
-
--- |
---
--- >>> fromExitCodeValue 99 "abc" :: ExitcodeT Identity String
--- ExitcodeT (Identity (Left 99))
--- >>> fromExitCodeValue 0 "abc" :: ExitcodeT Identity String
--- ExitcodeT (Identity (Right "abc"))
-fromExitCodeValue ::
-  Applicative f =>
-  Int
-  -> a
-  -> ExitcodeT f a
-fromExitCodeValue n a =
-  ExitcodeT (pure (bool (Left n) (Right a) (n == 0)))
 
 -- | Isomorphism from base exitcode to underlying `Maybe (Either Int ())` where `Int` is non-zero.
 --
@@ -310,10 +311,17 @@ instance Monad f => Alt (ExitcodeT f) where
 -- |
 --
 -- >>> exitsuccess "abc" <> exitsuccess "def" :: ExitcodeT Identity String
--- ExitcodeT (Identity (Right "abc"))
-instance Monad f => Semigroup (ExitcodeT f a) where
+-- ExitcodeT (Identity (Right "abcdef"))
+instance (Semigroup a, Applicative f) => Semigroup (ExitcodeT f a) where
   ExitcodeT a <> ExitcodeT b =
-    ExitcodeT (a >>= either (const b) (pure a))
+    let jn (Left _) x  = x
+        jn x (Left _) = x
+        jn (Right a1) (Right a2) = Right (a1 <> a2)
+    in  ExitcodeT (liftA2 jn a b)
+
+instance (Monoid a, Applicative f) => Monoid (ExitcodeT f a) where
+  mempty =
+    ExitcodeT (pure (Right mempty))
 
 -- |
 --
