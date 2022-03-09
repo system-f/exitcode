@@ -80,6 +80,9 @@ import Data.Tuple ( uncurry )
 import GHC.Show ( Show(showsPrec) )
 import System.Exit ( ExitCode(..) )
 
+-- $setup
+-- >>> import Prelude
+
 -- | An exit code status where failing with a value `0` cannot be represented.
 --
 -- Transformer for either a non-zero exit code (`Int`) or a value :: `a`.
@@ -382,7 +385,7 @@ instance MonadReader r f => MonadReader r (ExitcodeT f) where
 
 -- |
 --
--- >>> writer'' ('x', "abc")
+-- >>> writer ('x', "abc") :: ExitcodeT ((,) String) Char
 -- ExitcodeT ("abc",Right 'x')
 -- >>> listen (exitfailure0 99 :: ExitcodeT ((,) String) ())
 -- ExitcodeT ("",Left 99)
