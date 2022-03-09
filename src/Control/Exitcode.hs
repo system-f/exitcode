@@ -288,15 +288,15 @@ instance Monad f => Applicative (ExitcodeT f) where
 
 -- |
 --
--- >>> exitsuccess "abc" >>= \s -> exitsuccess (reverse s) :: ExitcodeT Identity String
+-- >>> exitsuccess "abc" >>- \s -> exitsuccess (reverse s) :: ExitcodeT Identity String
 -- ExitcodeT (Identity (Right "cba"))
--- >>> exitsuccess "abc" >>= \_ -> exitfailure0 99 :: ExitcodeT Identity ()
+-- >>> exitsuccess "abc" >>- \_ -> exitfailure0 99 :: ExitcodeT Identity ()
 -- ExitcodeT (Identity (Left 99))
--- >>> exitfailure0 99 >>= \_ -> exitsuccess "abc" :: ExitcodeT Identity String
+-- >>> exitfailure0 99 >>- \_ -> exitsuccess "abc" :: ExitcodeT Identity String
 -- ExitcodeT (Identity (Left 99))
--- >>> exitfailure0 99 >>= \_ -> exitfailure0 88 :: ExitcodeT Identity ()
+-- >>> exitfailure0 99 >>- \_ -> exitfailure0 88 :: ExitcodeT Identity ()
 -- ExitcodeT (Identity (Left 99))
--- >>> let loop = loop in exitfailure0 99 >>= loop :: ExitcodeT Identity ()
+-- >>> let loop = loop in exitfailure0 99 >>- loop :: ExitcodeT Identity ()
 -- ExitcodeT (Identity (Left 99))
 instance Monad f => Bind (ExitcodeT f) where
   (>>-) =
