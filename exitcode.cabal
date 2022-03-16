@@ -27,8 +27,8 @@ source-repository   head
 library
   exposed-modules:     Control.Exitcode
   build-depends:       base >= 4.8 && < 6
+                     , bifunctors >= 5 && < 6
                      , lens >= 4.15 && < 6
-                     , mmorph >= 1.0 && < 1.2
                      , mtl >= 2.2 && < 2.3
                      , semigroupoids >= 5.1 && < 5.4
                      , semigroups >= 0.16 && < 0.19
@@ -40,6 +40,7 @@ library
 test-suite             tests
   build-depends:       QuickCheck >= 2.9.2 && < 2.13
                      , base >= 4.8 && < 6
+                     , bifunctors >= 5 && < 6
                      , checkers >= 0.4.6 && < 0.5
                      , exitcode
                      , hedgehog >= 0.5 && < 0.7
