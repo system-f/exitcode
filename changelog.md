@@ -1,3 +1,9 @@
+0.1.0.5
+
+* Large refactor, involving an associated value with an exit failure.
+* Delete nix
+* Delete Travis CI
+
 0.1.0.4
 
 * Fix `Semigroup` instance.
