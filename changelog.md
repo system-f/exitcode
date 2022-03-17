@@ -1,3 +1,8 @@
+0.1.0.6
+
+* Implement `ExitcodeT1` which associates the same type of value
+* Implement functions over `System.Process` to use exitcode
+
 0.1.0.5
 
 * Large refactor, involving an associated value with an exit failure.
