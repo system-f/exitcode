@@ -19,26 +19,27 @@ import qualified Test.Tasty.QuickCheck     as TQC
 import           Control.Exitcode          (Exitcode, ExitcodeT, exitCode,
                                             exitfailure0, exitsuccess,
                                             exitsuccess0, runExitcode,
-                                            _ExitFailure, _ExitSuccess)
+                                            runExitcodeT, _ExitFailure,
+                                            _ExitSuccess, ExitcodeT0)
 
 import           System.Exit               (ExitCode (..))
 
-newtype EW f a = EW { unEW :: ExitcodeT f a } deriving (Eq, Show)
+newtype EW f e a = EW { unEW :: ExitcodeT f e a } deriving (Eq, Show)
 
-instance (Monad f, Arbitrary a) => Arbitrary (EW f a) where
+instance (Monad f, Arbitrary e, Arbitrary a) => Arbitrary (EW f e a) where
   arbitrary = fmap (EW . pure) TQC.arbitrary
 
-instance Functor f => Functor (EW f) where
+instance Functor f => Functor (EW f e) where
   fmap f = EW . fmap f . unEW
 
-instance Monad f => Applicative (EW f) where
+instance Monad f => Applicative (EW f e) where
   pure = EW . pure
   EW f <*> EW a = EW (f <*> a)
 
-instance (Eq1 f, Eq a) => EqProp (EW f a) where
+instance (Eq1 f, Eq e, Eq a) => EqProp (EW f e a) where
   (=-=) = eq
 
-type CheckMe = EW [] (Integer, Integer, Integer)
+type CheckMe = EW [] String (Integer, Integer, Integer)
 
 nonZero :: MonadGen m => m Int
 nonZero =
@@ -54,7 +55,7 @@ test_Exitcode =
     tastyCheckersBatch $ functor (undefined :: CheckMe)
   , tastyCheckersBatch $ applicative (undefined :: CheckMe)
   , applicativeTest
-  , exitFailurePrismTest
+  , exitFailureTraversalTest
   , exitSuccessPrismTest
   , exitfailure0Test
   , exitCodePrismTest
@@ -64,29 +65,25 @@ applicativeTest :: TestTree
 applicativeTest =
   testGroup "Applicative" [
     testCase "Sticks to the Right" $
-      pure (<> "bar") <*> pure "foo" @?= (exitsuccess "foobar" :: Exitcode String)
+      pure (<> "bar") <*> pure "foo" @?= (exitsuccess "foobar" :: Exitcode String String)
   ]
 
-exitFailurePrismTest :: TestTree
-exitFailurePrismTest =
-  testGroup "_ExitFailure Prism" [
-    testProperty "review non-zero input" . property $
-      forAll nonZero >>= (\n -> review _ExitFailure n === exitfailure0 n)
-  , testCase "review 0" $
-      review _ExitFailure 0 @?= exitsuccess0
-  , testProperty "view non-zero input" . property $
-      forAll nonZero >>= (\n -> exitfailure0 n ^? _ExitFailure === Just n)
+exitFailureTraversalTest :: TestTree
+exitFailureTraversalTest =
+  testGroup "_ExitFailure Traversal" [
+    testProperty "view non-zero input" . property $
+      forAll nonZero >>= (\n -> (exitfailure0 n :: ExitcodeT0 Identity) ^? _ExitFailure === Just ((), n))
   , testCase "view 0" $
-      exitfailure0 0 ^? _ExitFailure @?= Nothing
+      (exitfailure0 0 :: ExitcodeT0 Identity) ^? _ExitFailure @?= Nothing
   ]
 
 exitSuccessPrismTest :: TestTree
 exitSuccessPrismTest =
   testGroup "_ExitSuccess Prism" [
     testCase "review" $
-      review _ExitSuccess () @?= exitsuccess0
+      review _ExitSuccess () @?= (exitsuccess0 :: ExitcodeT Identity () ())
   , testCase "view exitsuccess0" $
-      exitsuccess0 ^? _ExitSuccess @?= Just ()
+      (exitsuccess0 :: ExitcodeT Identity () ()) ^? _ExitSuccess @?= Just ()
   , testProperty "view exitfailure0 non-zero" . property $
       forAll nonZero >>= (\n -> exitfailure0 n ^? _ExitSuccess === Nothing)
   , testCase "view exitfailure0 0" $
@@ -97,9 +94,10 @@ exitfailure0Test :: TestTree
 exitfailure0Test =
   testGroup "exitfailure0" [
     testProperty "non-zero input" . property $
-      forAll nonZero >>= (\n -> (runIdentity . runExitcode) (exitfailure0 n) === Left n)
+      forAll nonZero >>= (\n ->
+        runExitcode (exitfailure0 n) === Left ((), n))
   , testCase "0" $
-      (runIdentity . runExitcode) (exitfailure0 0) @?= Right ()
+      runExitcode (exitfailure0 0) @?= Right ()
   ]
 
 exitCodePrismTest :: TestTree
@@ -114,7 +112,8 @@ exitCodePrismTest =
   , testProperty "view ExitFailure n, where n is non-zero" . property $
       forAll nonZero >>= (\n -> Identity (ExitFailure n) ^? exitCode === Just (exitfailure0 n))
   , testCase "view ExitFailure 0" $
-      runExitcode (Identity (ExitFailure 0) ^. exitCode) @?= (MaybeT (Identity Nothing))
+      let _ = ""
+      in  runExitcodeT (Identity (ExitFailure 0) ^. exitCode) @?= (MaybeT (Identity Nothing))
   , testCase "view ExitSuccess" $
       Identity ExitSuccess ^? exitCode @?= Just exitsuccess0
   ]

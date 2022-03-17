@@ -5,6 +5,7 @@
 {-# LANGUAGE TupleSections #-}
 {-# LANGUAGE UndecidableInstances #-}
 {-# LANGUAGE LambdaCase #-}
+{-# LANGUAGE RankNTypes #-}
 
 module Control.Exitcode (
 -- * Types
@@ -12,6 +13,8 @@ module Control.Exitcode (
 , Exitcode
 , ExitcodeT0
 , Exitcode0
+, ExitcodeT1
+, Exitcode1
 -- * Construction
 , exitsuccess
 , exitsuccess0
@@ -24,11 +27,16 @@ module Control.Exitcode (
 , liftExitcode
 , liftExitcodeError
 , liftExitcodeError0
+, hoistExitcode
+, embedExitcode
+, exitcode1
 -- * Extraction
 , runExitcodeT
 , runExitcodeT0
 , runExitcode
 , runExitcode0
+, runExitcodeT1
+, runExitcode1
 -- * Optics
 , exitCode
 , _ExitcodeInt
@@ -36,27 +44,27 @@ module Control.Exitcode (
 , _ExitFailure
 , _ExitFailureError
 , _ExitSuccess
+, _Exitcode1
 ) where
 
 import Control.Applicative
     ( Applicative((<*>), pure, liftA2) )
 import Control.Category ( Category((.)) )
 import Control.Lens
-    ( Identity(runIdentity),
-      preview,
+    ( preview,
       view,
       iso,
       _Left,
       prism,
-      mapped,
       over,
       Field1(_1),
       Field2(_2),
       Iso,
+      Lens,
       Prism,
-      Setter',
-      Traversal )
-import Control.Monad ( Monad(return, (>>=)) )
+      Traversal,
+      Traversal' )
+import Control.Monad ( join, Monad(return, (>>=)) )
 import Control.Monad.Cont.Class ( MonadCont(..) )
 import Control.Monad.Error.Class ( MonadError(..) )
 import Control.Monad.IO.Class ( MonadIO(..) )
@@ -86,7 +94,7 @@ import Data.Functor.Classes
       Ord1(..),
       Show1(..) )
 import Data.Functor.Extend ( Extend(..) )
-import Data.Functor.Identity ( Identity(Identity) )
+import Data.Functor.Identity ( Identity(Identity, runIdentity) )
 import Data.Int ( Int )
 import Data.Maybe ( Maybe(Nothing, Just), fromMaybe )
 import Data.Monoid ( Monoid(mempty) )
@@ -328,19 +336,25 @@ _ExitcodeInt =
 
 -- | Setter to integer.
 --
--- >>> over _ExitcodeInt' (subtract 1) (exitsuccess0) :: ExitcodeT0 Identity
+-- >>> > preview _ExitcodeInt' (exitsuccess0 :: ExitcodeT [] () ())
+-- Just 0
+-- >>> preview _ExitcodeInt' (exitfailure0 99 :: ExitcodeT [] () ())
+-- Just 99
+-- >>> preview _ExitcodeInt' (exitfailure0 0 :: ExitcodeT [] () ())
+-- Just 0
+-- >>> over _ExitcodeInt' (subtract 1) exitsuccess0 :: ExitcodeT0 Identity
 -- ExitcodeT (Identity (Left ((),-1)))
 -- >>> over _ExitcodeInt' (subtract 1) (exitfailure0 99) :: ExitcodeT0 Identity
 -- ExitcodeT (Identity (Left ((),98)))
 -- >>> over _ExitcodeInt' (subtract 1) (exitfailure0 1) :: ExitcodeT0 Identity
 -- ExitcodeT (Identity (Right ()))
 _ExitcodeInt' ::
-  (Functor f) =>
-  Setter'
+  Traversable f =>
+  Traversal'
     (ExitcodeT0 f)
     Int
 _ExitcodeInt' =
-  _ExitcodeInt . mapped
+  _ExitcodeInt . traverse
 
 -- | A traversal to exit failure.
 --
@@ -572,6 +586,21 @@ liftExitcodeError0 ::
 liftExitcodeError0 x =
   liftExitcodeError (((),) <$> x) ()
 
+hoistExitcode ::
+  (forall x. f x -> g x)
+  -> ExitcodeT f e a
+  -> ExitcodeT g e a
+hoistExitcode nat (ExitcodeT x) =
+  ExitcodeT (nat x)
+
+embedExitcode ::
+  Functor g =>
+  (forall x. f x -> ExitcodeT g e x)
+  -> ExitcodeT f e a
+  -> ExitcodeT g e a
+embedExitcode nat (ExitcodeT x) =
+  ExitcodeT (join <$> runExitcodeT (nat x))
+
 instance MonadReader r f => MonadReader r (ExitcodeT f e) where
   ask =
     liftExitcode ask
@@ -651,3 +680,85 @@ instance Foldable f => Bifoldable (ExitcodeT f) where
 instance Traversable f => Bitraversable (ExitcodeT f) where
   bitraverse f g (ExitcodeT x) =
     ExitcodeT <$> traverse (bitraverse (\(a, n) -> (, n) <$> f a) g) x
+
+type ExitcodeT1 f a =
+  ExitcodeT f a a
+
+type Exitcode1 a =
+  ExitcodeT1 Identity a
+
+-- | Construct an exitcode with an associated value.
+--
+-- >>> exitcode1 99 "abc" :: ExitcodeT1 Identity String
+-- ExitcodeT (Identity (Left ("abc",99)))
+-- >>> exitcode1 0 "abc" :: ExitcodeT1 Identity String
+-- ExitcodeT (Identity (Right "abc"))
+exitcode1 ::
+  Applicative f =>
+  Int
+  -> a
+  -> ExitcodeT1 f a
+exitcode1 n a =
+  exitcodeValue a n a
+
+-- | Extract either the non-zero value or the success value.
+--
+-- >>> runExitcodeT1 exitsuccess0
+-- Right ()
+-- >>> runExitcodeT1 (exitfailure () 99) :: Identity (Either ((), Int) ())
+-- Identity (Left ((),99))
+-- >>> runExitcodeT1 (exitcode1 0 "abc") :: Identity (Either (String, Int) String)
+-- Identity (Right "abc")
+-- >>> runExitcodeT1 (exitcode1 99 "abc") :: Identity (Either (String, Int) String)
+-- Identity (Left ("abc",99))
+runExitcodeT1 ::
+  ExitcodeT1 f a
+  -> f (Either (a, Int) a)
+runExitcodeT1 (ExitcodeT x) =
+  x
+
+-- | Extract either the non-zero value or the success value.
+--
+-- >>> runExitcode1 exitsuccess0
+-- Right ()
+-- >>> runExitcode1 (exitfailure () 99)
+-- Left ((),99)
+-- >>> runExitcode1 (exitcode1 0 "abc")
+-- Right "abc"
+-- >>> runExitcode1 (exitcode1 99 "abc")
+-- Left ("abc",99)
+runExitcode1 ::
+  Exitcode1 a
+  -> Either (a, Int) a
+runExitcode1 =
+  runIdentity . runExitcodeT1
+
+-- | A lens to the value associated with an exitcode.
+--
+-- >>> view _Exitcode1 (exitcode1 0 "abc")
+-- "abc"
+-- >>> view _Exitcode1 (exitcode1 99 "abc")
+-- "abc"
+-- >>> view _Exitcode1 (exitcodeValue "abc" 0 "def")
+-- "def"
+-- >>> view _Exitcode1 (exitcodeValue "abc" 99 "def")
+-- "abc"
+-- >>> over _Exitcode1 reverse (exitcode1 0 "abc")
+-- ExitcodeT (Identity (Right "cba"))
+-- >>> over _Exitcode1 reverse (exitcode1 99 "abc")
+-- ExitcodeT (Identity (Left ("cba",99)))
+-- >>> over _Exitcode1 reverse (exitcodeValue "abc" 0 "def")
+-- ExitcodeT (Identity (Right "fed"))
+-- >>> over _Exitcode1 reverse (exitcodeValue "abc" 99 "def")
+-- ExitcodeT (Identity (Left ("cba",99)))
+_Exitcode1 ::
+  Lens
+    (Exitcode1 a)
+    (Exitcode1 a')
+    a
+    a'
+_Exitcode1 f =
+  either
+    (\(a, n) -> fmap (exitcode1 n) (f a))
+    (fmap (exitcode1 0) . f)
+    . runExitcode1
