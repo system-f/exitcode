@@ -37,6 +37,8 @@ module Control.Exitcode (
 , runExitcode0
 , runExitcodeT1
 , runExitcode1
+-- * Exceptions
+, tryExitcode
 -- * Optics
 , exitCode
 , _ExitcodeInt
@@ -47,9 +49,11 @@ module Control.Exitcode (
 , _Exitcode1
 ) where
 
+
 import Control.Applicative
     ( Applicative((<*>), pure, liftA2) )
 import Control.Category ( Category((.)) )
+import Control.Exception
 import Control.Lens
     ( preview,
       view,
@@ -67,6 +71,7 @@ import Control.Lens
 import Control.Monad ( join, Monad(return, (>>=)) )
 import Control.Monad.Cont.Class ( MonadCont(..) )
 import Control.Monad.Error.Class ( MonadError(..) )
+import Control.Monad.Except ( ExceptT(..) )
 import Control.Monad.IO.Class ( MonadIO(..) )
 import Control.Monad.Reader ( MonadReader(ask, local) )
 import Control.Monad.RWS.Class ( MonadRWS )
@@ -104,6 +109,7 @@ import Data.Traversable ( Traversable(traverse) )
 import Data.Tuple ( uncurry )
 import GHC.Show ( Show(showsPrec) )
 import System.Exit ( ExitCode(..) )
+import System.IO
 
 -- $setup
 -- >>> import Prelude
@@ -732,6 +738,13 @@ runExitcode1 ::
   -> Either (a, Int) a
 runExitcode1 =
   runIdentity . runExitcodeT1
+
+tryExitcode ::
+  Exception e' =>
+  ExitcodeT IO e a
+  -> ExitcodeT (ExceptT e' IO) e (Either e' a)
+tryExitcode (ExitcodeT x) =
+  ExitcodeT (ExceptT (fmap (fmap (fmap Right)) (try x)))
 
 -- | A lens to the value associated with an exitcode.
 --
