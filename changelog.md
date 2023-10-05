@@ -1,3 +1,7 @@
+0.1.0.7
+
+* Widen version boundaries
+
 0.1.0.6
 
 * Implement `ExitcodeT1` which associates the same type of value
