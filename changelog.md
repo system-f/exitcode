@@ -1,3 +1,7 @@
+0.1.0.8
+
+* add `tryExitcode`
+
 0.1.0.7
 
 * Widen version boundaries
