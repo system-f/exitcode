@@ -7,19 +7,26 @@ module Control.Process.Process(
 , readProcessWithExitCode
 , waitForProcess
 , getProcessExitCode
+, getProcessExitCodeBool
 ) where
 
 import Control.Applicative ( Applicative(pure) )
 import Control.Category ( Category((.)) )
+import Control.Exception ( Exception )
 import Control.Exitcode
-    ( ExitcodeT0,
+    ( ExitcodeT,
       fromExitCode',
       liftExitcode,
-      ExitcodeT1,
+      hoistExitcode,
+      tryExitcode,
       _Exitcode1,
-      hoistExitcode )
+      liftTryExitcode )
 import Control.Lens ( Identity(runIdentity), set )
 import Control.Monad ( Monad((>>=)) )
+import Control.Monad.Except ( ExceptT(..) )
+import Data.Bifunctor ( Bifunctor(bimap) )
+import Data.Bool ( Bool )
+import Data.Maybe ( Maybe(..), isJust, maybe )
 import Data.String ( String )
 import System.FilePath( FilePath )
 import System.IO ( IO )
@@ -49,35 +56,45 @@ import System.Process as Process(
   , createPipeFd
   )
 import qualified System.Process as P(readCreateProcessWithExitCode, readProcessWithExitCode, waitForProcess, getProcessExitCode)
-import Control.Monad.Trans.Maybe ( MaybeT(MaybeT) )
 
 readCreateProcessWithExitCode ::
+  Exception e' =>
   CreateProcess
   -> String
-  -> ExitcodeT1 IO (String, String)
+  -> ExitcodeT (ExceptT e' IO) (String, String) (String, String)
 readCreateProcessWithExitCode p a =
-  liftExitcode (P.readCreateProcessWithExitCode p a) >>= \(x, y, z) ->
+  tryExitcode (liftExitcode (P.readCreateProcessWithExitCode p a)) >>= \(x, y, z) ->
     hoistExitcode (pure . runIdentity) (set _Exitcode1 (y, z) (fromExitCode' x))
 
 readProcessWithExitCode ::
+  Exception e' =>
   FilePath
   -> [String]
   -> String
-  -> ExitcodeT1 IO (String, String)
+  -> ExitcodeT (ExceptT e' IO) (String, String) (String, String)
 readProcessWithExitCode p a i =
-  liftExitcode (P.readProcessWithExitCode p a i) >>= \(x, y, z) ->
+  tryExitcode (liftExitcode (P.readProcessWithExitCode p a i)) >>= \(x, y, z) ->
     hoistExitcode (pure . runIdentity) (set _Exitcode1 (y, z) (fromExitCode' x))
 
 waitForProcess ::
+  Exception e' =>
   ProcessHandle
-  -> ExitcodeT0 IO
+  -> ExitcodeT (ExceptT e' IO) () ()
 waitForProcess h =
-  liftExitcode (P.waitForProcess h) >>= \x ->
+  tryExitcode (liftExitcode (P.waitForProcess h)) >>= \x ->
     hoistExitcode (pure . runIdentity) (fromExitCode' x)
 
 getProcessExitCode ::
+  Exception e' =>
   ProcessHandle
-  -> ExitcodeT0 (MaybeT IO)
+  -> ExitcodeT (ExceptT e' IO) (Maybe ()) (Maybe ())
 getProcessExitCode h =
-  liftExitcode (MaybeT (P.getProcessExitCode h)) >>=
-    hoistExitcode (pure . runIdentity) . fromExitCode'
+  liftTryExitcode (P.getProcessExitCode h) >>=
+    maybe (pure Nothing) (hoistExitcode (pure . runIdentity) . set _Exitcode1 (Just ()) . fromExitCode')
+
+getProcessExitCodeBool ::
+  Exception e' =>
+  ProcessHandle
+  -> ExitcodeT (ExceptT e' IO) Bool Bool
+getProcessExitCodeBool =
+  bimap isJust isJust . getProcessExitCode

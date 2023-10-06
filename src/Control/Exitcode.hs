@@ -39,6 +39,7 @@ module Control.Exitcode (
 , runExitcode1
 -- * Exceptions
 , tryExitcode
+, liftTryExitcode
 -- * Optics
 , exitCode
 , _ExitcodeInt
@@ -109,7 +110,7 @@ import Data.Traversable ( Traversable(traverse) )
 import Data.Tuple ( uncurry )
 import GHC.Show ( Show(showsPrec) )
 import System.Exit ( ExitCode(..) )
-import System.IO
+import System.IO ( IO )
 
 -- $setup
 -- >>> import Prelude
@@ -739,12 +740,21 @@ runExitcode1 ::
 runExitcode1 =
   runIdentity . runExitcodeT1
 
+-- | Try the IO action producing the exitcode, possibly throwing an exception.
 tryExitcode ::
   Exception e' =>
   ExitcodeT IO e a
-  -> ExitcodeT (ExceptT e' IO) e (Either e' a)
+  -> ExitcodeT (ExceptT e' IO) e a
 tryExitcode (ExitcodeT x) =
-  ExitcodeT (ExceptT (fmap (fmap (fmap Right)) (try x)))
+  ExitcodeT (ExceptT (try x))
+
+-- | Try the IO action producing the exitcode, possibly throwing an exception.
+liftTryExitcode ::
+  Exception e' =>
+  IO a
+  -> ExitcodeT (ExceptT e' IO) e a
+liftTryExitcode x =
+  ExitcodeT (ExceptT (fmap (fmap Right) (try x)))
 
 -- | A lens to the value associated with an exitcode.
 --
